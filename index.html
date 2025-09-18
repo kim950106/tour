@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>파트너 등록</title>
+    <title>파트너 신청문의</title>
     <style>
         * {
             margin: 0;
@@ -197,8 +197,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 파트너 등록</h1>
-            <p>함께 성장할 파트너가 되어주세요!<br>간단한 정보만 입력해주시면 됩니다.</p>
+            <h1>🚀 파트너 문의</h1>
+            <p>투어패스 파트너가 되어주세요!<br>간단한 정보만 입력해주시면 됩니다.</p>
         </div>
         
         <div class="error-message" id="errorMessage"></div>
@@ -308,7 +308,7 @@
                 errorMessage.textContent = '필수 항목을 모두 입력해주세요.';
                 errorMessage.style.display = 'block';
                 submitBtn.disabled = false;
-                submitBtn.textContent = '파트너 등록하기';
+                submitBtn.textContent = '파트너 신청하기';
                 return;
             }
             
@@ -316,7 +316,7 @@
                 errorMessage.textContent = '개인정보 수집 및 이용에 동의해주세요.';
                 errorMessage.style.display = 'block';
                 submitBtn.disabled = false;
-                submitBtn.textContent = '파트너 등록하기';
+                submitBtn.textContent = '파트너 신청하기';
                 return;
             }
             
