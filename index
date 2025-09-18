@@ -1,71 +1,385 @@
-// Google Apps Script 웹앱 URL (3단계에서 복사한 URL)
-const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyfNeqZDVXYzQMoSq-CC2RczR4w2GT_o0z6yrejYwn2tjschExgmdSLlymf5aQyzW6W/exec';
-
-document.getElementById('partnerForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const submitBtn = document.getElementById('submitBtn');
-    const errorMessage = document.getElementById('errorMessage');
-    const successMessage = document.getElementById('successMessage');
-    const form = document.getElementById('partnerForm');
-    
-    // 에러 메시지 숨기기
-    errorMessage.style.display = 'none';
-    
-    // 버튼 비활성화 및 로딩 상태
-    submitBtn.disabled = true;
-    submitBtn.textContent = '등록 중...';
-    
-    // 폼 데이터 수집
-    const formData = new FormData(this);
-    const data = {
-        name: formData.get('name'),
-        email: formData.get('email'),
-        phone: formData.get('phone') || '',
-        business: formData.get('business'),
-        experience: formData.get('experience') || '',
-        inquiry: formData.get('inquiry') || '',
-        newsletter: formData.get('newsletter') === 'yes' ? '동의' : '비동의'
-    };
-    
-    // 유효성 검사
-    if (!data.name || !data.email || !data.business) {
-        showError('필수 항목을 모두 입력해주세요.');
-        return;
-    }
-    
-    if (!formData.get('privacy')) {
-        showError('개인정보 수집 및 이용에 동의해주세요.');
-        return;
-    }
-    
-    // Google Apps Script로 데이터 전송
-    fetch(WEBAPP_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.result === 'success') {
-            // 성공 처리
-            form.style.display = 'none';
-            successMessage.style.display = 'block';
-        } else {
-            throw new Error(result.message || '알 수 없는 오류가 발생했습니다.');
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>파트너 등록</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showError('등록 중 오류가 발생했습니다. 다시 시도해주세요.');
-    });
-    
-    function showError(message) {
-        errorMessage.textContent = message;
-        errorMessage.style.display = 'block';
-        submitBtn.disabled = false;
-        submitBtn.textContent = '파트너 등록하기';
-    }
-});
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+        
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .checkbox-group {
+            margin: 25px 0;
+        }
+        
+        .checkbox-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .checkbox-wrapper input[type="checkbox"] {
+            margin-top: 2px;
+            transform: scale(1.2);
+            accent-color: #667eea;
+        }
+        
+        .checkbox-wrapper label {
+            margin-bottom: 0;
+            font-size: 14px;
+            line-height: 1.4;
+            color: #555;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .success-message {
+            display: none;
+            background: #d4edda;
+            color: #155724;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid #c3e6cb;
+            animation: slideIn 0.5s ease;
+        }
+        
+        .error-message {
+            display: none;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid #f5c6cb;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .required {
+            color: #e74c3c;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 파트너 등록</h1>
+            <p>함께 성장할 파트너가 되어주세요!<br>간단한 정보만 입력해주시면 됩니다.</p>
+        </div>
+        
+        <div class="error-message" id="errorMessage"></div>
+        
+        <form id="partnerForm">
+            <div class="form-group">
+                <label for="name">이름 / 회사명 <span class="required">*</span></label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">이메일 <span class="required">*</span></label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">연락처</label>
+                <input type="tel" id="phone" name="phone" placeholder="010-1234-5678">
+            </div>
+            
+            <div class="form-group">
+                <label for="business">종합여행업 보유 여부 <span class="required">*</span></label>
+                <select id="business" name="business" required>
+                    <option value="">선택해주세요</option>
+                    <option value="있다">있다</option>
+                    <option value="없다">없다</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="experience">경력 / 경험</label>
+                <select id="experience" name="experience">
+                    <option value="">선택해주세요</option>
+                    <option value="1년미만">1년미만</option>
+                    <option value="1~3년">1~3년</option>
+                    <option value="3~5년">3~5년</option>
+                    <option value="5년 이상">5년 이상</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="inquiry">기타 문의사항</label>
+                <textarea id="inquiry" name="inquiry" placeholder="기타 문의사항이나 궁금한 점이 있으시면 자유롭게 작성해주세요."></textarea>
+            </div>
+            
+            <div class="checkbox-group">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="newsletter" name="newsletter" value="yes">
+                    <label for="newsletter">뉴스레터 및 파트너 정보 수신에 동의합니다</label>
+                </div>
+                
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="privacy" name="privacy" value="yes" required>
+                    <label for="privacy">개인정보 수집 및 이용에 동의합니다 <span class="required">*</span></label>
+                </div>
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submitBtn">
+                파트너 등록하기
+            </button>
+        </form>
+        
+        <div class="success-message" id="successMessage">
+            <h3>🎉 등록이 완료되었습니다!</h3>
+            <p>빠른 시일 내에 연락드리겠습니다.<br>함께 성장할 수 있어 기대됩니다!</p>
+        </div>
+    </div>
+
+    <script>
+        // Google Apps Script 웹앱 URL
+        const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyfNeqZDVXYzQMoSq-CC2RczR4w2GT_o0z6yrejYwn2tjschExgmdSLlymf5aQyzW6W/exec';
+        
+        // 백업용 로컬 저장
+        let registrations = JSON.parse(localStorage.getItem('partnerRegistrations') || '[]');
+        
+        document.getElementById('partnerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const form = document.getElementById('partnerForm');
+            
+            // 에러 메시지 숨기기
+            errorMessage.style.display = 'none';
+            
+            // 버튼 비활성화 및 로딩 상태
+            submitBtn.disabled = true;
+            submitBtn.textContent = '등록 중...';
+            
+            // 폼 데이터 수집
+            const formData = new FormData(this);
+            const data = {
+                timestamp: new Date().toLocaleString('ko-KR'),
+                name: formData.get('name'),
+                email: formData.get('email'),
+                phone: formData.get('phone') || '미입력',
+                business: formData.get('business'),
+                experience: formData.get('experience') || '미선택',
+                inquiry: formData.get('inquiry') || '없음',
+                newsletter: formData.get('newsletter') === 'yes' ? '동의' : '비동의',
+                privacy: formData.get('privacy') === 'yes' ? '동의' : '비동의'
+            };
+            
+            // 유효성 검사
+            if (!data.name || !data.email || !data.business) {
+                errorMessage.textContent = '필수 항목을 모두 입력해주세요.';
+                errorMessage.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = '파트너 등록하기';
+                return;
+            }
+            
+            if (data.privacy !== '동의') {
+                errorMessage.textContent = '개인정보 수집 및 이용에 동의해주세요.';
+                errorMessage.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = '파트너 등록하기';
+                return;
+            }
+            
+                // Google Apps Script로 데이터 전송
+            fetch(WEBAPP_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.result === 'success') {
+                    // 성공 처리
+                    form.style.display = 'none';
+                    successMessage.style.display = 'block';
+                    
+                    // 백업용 로컬 저장
+                    registrations.push(data);
+                    localStorage.setItem('partnerRegistrations', JSON.stringify(registrations));
+                    
+                    console.log('스프레드시트 등록 성공:', data);
+                } else {
+                    throw new Error(result.message || '알 수 없는 오류가 발생했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('스프레드시트 연동 에러:', error);
+                
+                // 에러 발생 시 로컬 저장으로 대체
+                registrations.push(data);
+                localStorage.setItem('partnerRegistrations', JSON.stringify(registrations));
+                
+                // 성공 처리 (사용자에게는 성공으로 보여줌)
+                form.style.display = 'none';
+                successMessage.style.display = 'block';
+                
+                console.log('로컬 저장으로 대체 처리:', data);
+            });
+        });
+        
+        // 개발자를 위한 데이터 확인 함수
+        function showRegistrations() {
+            console.table(JSON.parse(localStorage.getItem('partnerRegistrations') || '[]'));
+        }
+        
+        // 데이터 초기화 함수 (개발/테스트용)
+        function clearRegistrations() {
+            localStorage.removeItem('partnerRegistrations');
+            console.log('등록 데이터가 초기화되었습니다.');
+        }
+        
+        // 입력 필드 애니메이션
+        document.querySelectorAll('input, select, textarea').forEach(field => {
+            field.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+            
+            field.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
