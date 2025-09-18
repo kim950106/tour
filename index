@@ -1,5 +1,5 @@
 // Google Apps Script 웹앱 URL (3단계에서 복사한 URL)
-const WEBAPP_URL = '1L25EahxkY5tjf8wgo-9ntMIohO4ZqnXCIwQ1B5nVOpo';
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyfNeqZDVXYzQMoSq-CC2RczR4w2GT_o0z6yrejYwn2tjschExgmdSLlymf5aQyzW6W/exec';
 
 document.getElementById('partnerForm').addEventListener('submit', function(e) {
     e.preventDefault();
