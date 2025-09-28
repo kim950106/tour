@@ -418,36 +418,44 @@
         </div>
         
         <div class="control-panel">
-            <div class="input-row">
-                <input type="text" id="myName" placeholder="내 이름">
-                <select id="myMbti">
-                    <option value="">내 MBTI 선택</option>
-                    <option value="INTJ">INTJ</option>
-                    <option value="INTP">INTP</option>
-                    <option value="ENTJ">ENTJ</option>
-                    <option value="ENTP">ENTP</option>
-                    <option value="INFJ">INFJ</option>
-                    <option value="INFP">INFP</option>
-                    <option value="ENFJ">ENFJ</option>
-                    <option value="ENFP">ENFP</option>
-                    <option value="ISTJ">ISTJ</option>
-                    <option value="ISFJ">ISFJ</option>
-                    <option value="ESTJ">ESTJ</option>
-                    <option value="ESFJ">ESFJ</option>
-                    <option value="ISTP">ISTP</option>
-                    <option value="ISFP">ISFP</option>
-                    <option value="ESTP">ESTP</option>
-                    <option value="ESFP">ESFP</option>
-                </select>
-            </div>
-            <button class="btn-primary" onclick="addMyMbti()">📍 내 위치 추가</button>
-            
             <button class="btn-primary" onclick="loadFromSheet()" style="background: linear-gradient(135deg, #4caf50, #66bb6a);">
-                🔄 스프레드시트에서 데이터 가져오기
+                👥 관계도 보기
             </button>
-            <div class="help-text" style="text-align: center; margin-top: 5px;">
-                💡 버튼을 눌러 최신 데이터를 불러오세요
+            <div class="help-text" style="text-align: center; margin-top: 5px; margin-bottom: 15px;">
+                💡 팀원들의 MBTI 관계도를 확인하세요
             </div>
+            
+            <div id="myInfoSection" style="display: none;">
+                <div style="padding: 10px; background: #f0f7ff; border-radius: 8px; margin-bottom: 10px;">
+                    <div style="font-size: 14px; font-weight: 600; color: #667eea; margin-bottom: 10px; text-align: center;">
+                        📍 내 위치 추가하기
+                    </div>
+                    <div class="input-row">
+                        <input type="text" id="myName" placeholder="내 이름">
+                        <select id="myMbti">
+                            <option value="">내 MBTI 선택</option>
+                            <option value="INTJ">INTJ</option>
+                            <option value="INTP">INTP</option>
+                            <option value="ENTJ">ENTJ</option>
+                            <option value="ENTP">ENTP</option>
+                            <option value="INFJ">INFJ</option>
+                            <option value="INFP">INFP</option>
+                            <option value="ENFJ">ENFJ</option>
+                            <option value="ENFP">ENFP</option>
+                            <option value="ISTJ">ISTJ</option>
+                            <option value="ISFJ">ISFJ</option>
+                            <option value="ESTJ">ESTJ</option>
+                            <option value="ESFJ">ESFJ</option>
+                            <option value="ISTP">ISTP</option>
+                            <option value="ISFP">ISFP</option>
+                            <option value="ESTP">ESTP</option>
+                            <option value="ESFP">ESFP</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" onclick="addMyMbti()">⭐ 내 위치로 관계도 보기</button>
+                </div>
+            </div>
+        </div>
         </div>
         
         <div class="visualization-area">
@@ -544,6 +552,7 @@
         let nodes = [];
         let connections = [];
         let myData = null;
+        let currentData = [];
         
         window.onload = function() {
             // 페이지 로드시 자동으로 데이터 불러오기
@@ -586,15 +595,26 @@
                     return;
                 }
                 
-                const limitedData = data.slice(0, 13);
+                // 데이터 저장
+                currentData = data.slice(0, 13);
                 
-                visualize(limitedData);
-                updateStats(limitedData);
+                // 내 정보가 있으면 유지
+                if (myData) {
+                    visualize(currentData);
+                    updateStats(currentData);
+                } else {
+                    // 처음 로드시 전체 데이터만 표시
+                    visualize(currentData);
+                    updateStats(currentData);
+                    
+                    // 내 정보 입력 섹션 표시
+                    document.getElementById('myInfoSection').style.display = 'block';
+                }
                 
                 if (button) {
-                    button.innerHTML = '✅ 불러오기 완료!';
+                    button.innerHTML = '✅ 관계도 생성 완료!';
                     setTimeout(() => {
-                        button.innerHTML = originalText;
+                        button.innerHTML = '👥 관계도 보기';
                     }, 2000);
                 }
                 
@@ -622,7 +642,16 @@
                 isMe: true
             };
             
-            loadFromSheet();
+            // 현재 데이터로 다시 시각화
+            visualize(currentData);
+            updateStats(currentData);
+            
+            // 버튼 텍스트 변경
+            const button = event.target;
+            button.innerHTML = '✨ 관계도 업데이트 완료!';
+            setTimeout(() => {
+                button.innerHTML = '⭐ 내 위치로 관계도 보기';
+            }, 2000);
         }
         
         function visualize(data) {
