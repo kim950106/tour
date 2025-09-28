@@ -519,7 +519,7 @@
     
     <script>
         // ⚠️ 여기에 Web App URL을 입력하세요!
-        const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxgPR8R0tD-eLfWV2tLcaI4SF9sCMh6tJhlYls4Yfzp84EbnoJEhJNShlmTHRqpTb-C/exec';
+        const SHEET_URL = 'YOUR_WEB_APP_URL_HERE';
         
         const mbtiEmojis = {
             'INTJ': '🧙', 'INTP': '🤖', 'ENTJ': '👑', 'ENTP': '💡',
@@ -565,8 +565,41 @@
         };
         
         async function loadFromSheet() {
+            // 테스트용 샘플 데이터
             if (SHEET_URL === 'YOUR_WEB_APP_URL_HERE') {
-                alert('⚠️ 개발자에게 문의하세요!\nindex.html 파일에서 SHEET_URL을 설정해야 합니다.');
+                // 실제 팀 데이터처럼 13명의 샘플 데이터
+                const sampleData = [
+                    {name: '김철수', type: 'INTJ'},
+                    {name: '이영희', type: 'ENFP'},
+                    {name: '박민수', type: 'ISTP'},
+                    {name: '최지은', type: 'INFJ'},
+                    {name: '정대호', type: 'ENTP'},
+                    {name: '한소연', type: 'ISFJ'},
+                    {name: '조현우', type: 'ESTP'},
+                    {name: '윤서연', type: 'INFP'},
+                    {name: '강민재', type: 'ENTJ'},
+                    {name: '임채원', type: 'ESFJ'},
+                    {name: '송준호', type: 'ISTJ'},
+                    {name: '오수빈', type: 'ENFJ'},
+                    {name: '백하늘', type: 'ISFP'}
+                ];
+                
+                currentData = sampleData;
+                visualize(currentData);
+                updateStats(currentData);
+                
+                // 내 정보 입력 섹션 표시
+                document.getElementById('myInfoSection').style.display = 'block';
+                
+                // 버튼 텍스트 변경
+                const button = event?.target;
+                if (button) {
+                    button.innerHTML = '✅ 관계도 생성 완료!';
+                    setTimeout(() => {
+                        button.innerHTML = '👥 관계도 보기';
+                    }, 2000);
+                }
+                
                 return;
             }
             
@@ -879,25 +912,9 @@
                 
                 document.getElementById('excellentCount').textContent = excellent.length;
                 document.getElementById('challengingCount').textContent = challenging.length;
-                
-                const details = document.getElementById('relationshipDetails');
-                if (excellent.length > 0 || challenging.length > 0) {
-                    details.style.display = 'block';
-                    
-                    if (excellent.length > 0) {
-                        document.getElementById('excellentList').innerHTML = 
-                            `💚 최고: ${excellent.map(p => p.name || p.type).join(', ')}`;
-                    }
-                    
-                    if (challenging.length > 0) {
-                        document.getElementById('challengingList').innerHTML = 
-                            `🧡 도전적: ${challenging.map(p => p.name || p.type).join(', ')}`;
-                    }
-                }
             } else {
                 document.getElementById('excellentCount').textContent = '-';
                 document.getElementById('challengingCount').textContent = '-';
-                document.getElementById('relationshipDetails').style.display = 'none';
             }
         }
         
