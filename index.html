@@ -1,928 +1,587 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MBTI 관계도</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        html, body {
-            height: 100%;
-            overflow: hidden;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
-            padding: 0;
-        }
-        
-        .mobile-container {
-            width: 100%;
-            height: 100%;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 10px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            flex-shrink: 0;
-        }
-        
-        .header h1 {
-            font-size: 18px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .control-panel {
-            background: #f8f9fa;
-            padding: 10px;
-            border-bottom: 1px solid #e0e0e0;
-            flex-shrink: 0;
-        }
-        
-        .input-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .input-row input {
-            flex: 1;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        
-        .input-row select {
-            flex: 1;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            background: white;
-        }
-        
-        .btn-primary {
-            width: 100%;
-            padding: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            cursor: pointer;
-        }
-        
-        .btn-secondary {
-            width: 100%;
-            padding: 10px;
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        
-        .data-input-toggle {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px;
-            background: #e8f0ff;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            background: #e8f5e9;
-            border: 2px solid #4caf50;
-        }
-        
-        .data-input-content {
-            display: none;
-            margin-top: 10px;
-        }
-        
-        .data-input-content.show {
-            display: block;
-        }
-        
-        .help-text {
-            font-size: 11px;
-            color: #888;
-            margin-top: 3px;
-            line-height: 1.2;
-        }
-        
-        .visualization-area {
-            flex: 1;
-            position: relative;
-            min-height: 400px;
-            background: linear-gradient(135deg, #ffeef8 0%, #e6f2ff 100%);
-            overflow: hidden;
-        }
-        
-        #canvas-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            min-height: 400px;
-        }
-        
-        .mbti-node {
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            touch-action: none;
-            cursor: pointer;
-            transition: transform 0.2s;
-            z-index: 10;
-        }
-        
-        .mbti-node.active {
-            transform: scale(1.15);
-            z-index: 50;
-        }
-        
-        .node-circle {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            background: white;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-            border: 2px solid white;
-        }
-        
-        .node-circle.me {
-            width: 60px;
-            height: 60px;
-            font-size: 26px;
-            border: 3px solid gold;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        .node-label {
-            margin-top: 3px;
-            padding: 2px 6px;
-            background: white;
-            border-radius: 10px;
-            font-size: 10px;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .node-name {
-            margin-top: 2px;
-            padding: 1px 5px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 6px;
-            font-size: 9px;
-            color: #666;
-            max-width: 60px;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-        
-        .connection-line {
-            position: absolute;
-            height: 2px;
-            transform-origin: left center;
-            z-index: 1;
-            opacity: 0.5;
-        }
-        
-        .connection-line.highlight {
-            opacity: 1;
-            height: 3px;
-            z-index: 5;
-        }
-        
-        .connection-excellent {
-            background: #4caf50;
-        }
-        
-        .connection-good {
-            background: #2196f3;
-        }
-        
-        .connection-neutral {
-            background: #ffc107;
-        }
-        
-        .connection-challenging {
-            background: #ff5722;
-        }
-        
-        .legend {
-            display: flex;
-            justify-content: space-around;
-            padding: 10px;
-            background: white;
-            border-top: 1px solid #e0e0e0;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 11px;
-            color: #555;
-        }
-        
-        .legend-line {
-            width: 20px;
-            height: 3px;
-            border-radius: 2px;
-        }
-        
-        .stats-panel {
-            background: white;
-            padding: 8px;
-            border-top: 1px solid #e0e0e0;
-            flex-shrink: 0;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-        }
-        
-        .stat-card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            padding: 6px;
-            border-radius: 6px;
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 14px;
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .stat-label {
-            font-size: 9px;
-            color: #666;
-            margin-top: 1px;
-        }
-        
-        .relationship-details {
-            background: #f8f9fa;
-            padding: 6px;
-            border-radius: 6px;
-            font-size: 11px;
-            line-height: 1.4;
-            margin-top: 6px;
-        }
-        
-        .relationship-item {
-            margin: 3px 0;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        .info-popup {
-            position: fixed;
-            bottom: -100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
-            padding: 20px;
-            z-index: 200;
-            transition: bottom 0.3s;
-        }
-        
-        .info-popup.show {
-            bottom: 0;
-        }
-        
-        .popup-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .popup-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .popup-close {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: #f0f0f0;
-            border: none;
-            font-size: 18px;
-            color: #666;
-            cursor: pointer;
-        }
-        
-        .popup-content {
-            font-size: 14px;
-            line-height: 1.6;
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 10px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 375px) {
-            .node-circle {
-                width: 45px;
-                height: 45px;
-                font-size: 20px;
-            }
-            
-            .node-circle.me {
-                width: 55px;
-                height: 55px;
-                font-size: 24px;
-            }
-            
-            .node-label {
-                font-size: 9px;
-            }
-            
-            .node-name {
-                font-size: 8px;
-            }
-        }
-        
-        @media (min-width: 768px) {
-            .mobile-container {
-                max-width: 768px;
-                margin: 0 auto;
-                box-shadow: 0 0 30px rgba(0,0,0,0.1);
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
+  <title>MBTI 관계도 | LS TourPass</title>
+  <style>
+    :root{
+      --brand-start:#5b7cfa; /* 기존 톤 유지하되 대비 향상 */
+      --brand-end:#7a53c8;
+      --ink:#0f172a;
+      --ink-2:#334155;
+      --muted:#64748b;
+      --bg:#ffffff;
+      --panel:#f8fafc;
+      --line:#e2e8f0;
+      --ok:#10b981;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --chip:#eef2ff;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+      background:linear-gradient(135deg,var(--brand-start),var(--brand-end));
+      color:var(--ink);
+      overflow:hidden;
+    }
+    .app{
+      display:flex;flex-direction:column;height:100%;max-width:820px;margin:0 auto;background:var(--bg);
+      box-shadow:0 10px 30px rgba(0,0,0,.12)
+    }
+    .header{
+      background:linear-gradient(135deg,var(--brand-start),var(--brand-end));
+      color:#fff;padding:12px 14px;display:flex;align-items:center;justify-content:space-between
+    }
+    .title{font-weight:700;font-size:16px;letter-spacing:.2px;display:flex;gap:8px;align-items:center}
+    .controls{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 12px}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .row+.row{margin-top:8px}
+    .btn{
+      appearance:none;border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer
+    }
+    .btn-primary{
+      background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;flex:1;min-width:140px
+    }
+    .btn-outline{
+      background:#fff;border:2px solid var(--brand-start);color:var(--brand-start);font-weight:700
+    }
+    .input,select{
+      flex:1;min-width:120px;background:#fff;border:2px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px
+    }
+    .chip{
+      background:var(--chip);padding:6px 10px;border-radius:999px;font-size:12px;color:#3730a3;font-weight:700
+    }
+    .viz-wrap{position:relative;flex:1;min-height:420px;overflow:hidden;background:linear-gradient(135deg,#fff6fb,#eef7ff)}
+    #stage{position:absolute;inset:0}
+    .legend{
+      display:flex;gap:12px;flex-wrap:wrap;padding:8px 12px;border-top:1px solid var(--line);background:#fff
+    }
+    .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2)}
+    .legend-dot{width:18px;height:4px;border-radius:4px;display:inline-block}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 12px;background:#fff;border-top:1px solid var(--line)}
+    .stat{background:linear-gradient(180deg,#f6f7fb,#eaeef7);border-radius:10px;padding:8px;text-align:center}
+    .stat .v{font-weight:800}
+    .stat .k{font-size:11px;color:var(--muted)}
+    .sheetbox{display:grid;grid-template-columns:1.2fr 1fr;gap:8px}
+    .mebox{background:#eef6ff;border:1px solid #c7dbff;border-radius:10px;padding:8px}
+    .gridbox{background:#f0fff7;border:1px solid #c8f3dd;border-radius:10px;padding:8px}
+    .label{font-size:12px;color:#1e40af;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+    .helper{font-size:12px;color:var(--muted)}
+    .bottomsheet{
+      position:fixed;left:0;right:0;bottom:-100%;background:#fff;border-top-left-radius:16px;border-top-right-radius:16px;
+      box-shadow:0 -10px 30px rgba(0,0,0,.18);padding:16px;transition:bottom .25s ease;z-index:50;max-width:820px;margin:0 auto
+    }
+    .bottomsheet.show{bottom:0}
+    .sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .sheet-title{font-weight:800}
+    .x{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer}
+    .searchrow{display:flex;gap:8px;margin-top:8px}
+    .mode-tabs{display:flex;gap:6px;flex-wrap:wrap}
+    .tab{padding:8px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12px;cursor:pointer}
+    .tab.active{background:#1e40af;color:#fff;border-color:#1e40af}
+    @media (max-width:480px){.sheetbox{grid-template-columns:1fr}}
+  </style>
 </head>
 <body>
-    <div class="mobile-container">
-        <div class="header">
-            <h1>🌟 MBTI 관계도 🌟</h1>
-        </div>
-        
-        <div class="control-panel">
-            <button class="btn-primary" onclick="loadFromSheet()" style="background: linear-gradient(135deg, #4caf50, #66bb6a);">
-                👥 관계도 보기
-            </button>
-            <div class="help-text" style="text-align: center; margin-bottom: 10px;">
-                💡 팀원들의 MBTI 관계도를 확인하세요
-            </div>
-            
-            <div id="myInfoSection" style="display: none;">
-                <div style="padding: 8px; background: #f0f7ff; border-radius: 8px;">
-                    <div style="font-size: 13px; font-weight: 600; color: #667eea; margin-bottom: 8px; text-align: center;">
-                        📍 내 위치 추가하기
-                    </div>
-                    <div class="input-row">
-                        <input type="text" id="myName" placeholder="내 이름">
-                        <select id="myMbti">
-                            <option value="">내 MBTI 선택</option>
-                            <option value="INTJ">INTJ</option>
-                            <option value="INTP">INTP</option>
-                            <option value="ENTJ">ENTJ</option>
-                            <option value="ENTP">ENTP</option>
-                            <option value="INFJ">INFJ</option>
-                            <option value="INFP">INFP</option>
-                            <option value="ENFJ">ENFJ</option>
-                            <option value="ENFP">ENFP</option>
-                            <option value="ISTJ">ISTJ</option>
-                            <option value="ISFJ">ISFJ</option>
-                            <option value="ESTJ">ESTJ</option>
-                            <option value="ESFJ">ESFJ</option>
-                            <option value="ISTP">ISTP</option>
-                            <option value="ISFP">ISFP</option>
-                            <option value="ESTP">ESTP</option>
-                            <option value="ESFP">ESFP</option>
-                        </select>
-                    </div>
-                    <button class="btn-primary" onclick="addMyMbti()">⭐ 내 위치로 관계도 보기</button>
-                </div>
-            </div>
-        </div>
-        </div>
-        
-        <div class="visualization-area">
-            <div id="canvas-container"></div>
-        </div>
-        
-        <div class="legend">
-            <div class="legend-item">
-                <div class="legend-line connection-excellent"></div>
-                <span>최고</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-line connection-good"></div>
-                <span>좋음</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-line connection-neutral"></div>
-                <span>보통</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-line connection-challenging"></div>
-                <span>도전적</span>
-            </div>
-        </div>
-        
-        <div class="stats-panel">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="totalCount">0</div>
-                    <div class="stat-label">총 인원</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="excellentCount">0</div>
-                    <div class="stat-label">최고 궁합</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="challengingCount">0</div>
-                    <div class="stat-label">도전적</div>
-                </div>
-            </div>
-            
-            <div class="relationship-details" id="relationshipDetails" style="display: none;">
-                <div class="relationship-item" id="excellentList"></div>
-                <div class="relationship-item" id="challengingList"></div>
-            </div>
-        </div>
-        
-        <div class="info-popup" id="infoPopup">
-            <div class="popup-header">
-                <div class="popup-title" id="popupTitle"></div>
-                <button class="popup-close" onclick="closePopup()">✕</button>
-            </div>
-            <div class="popup-content" id="popupContent"></div>
-        </div>
+  <div class="app">
+    <div class="header">
+      <div class="title">🌟 MBTI 관계도</div>
+      <div class="mode-tabs" role="tablist" aria-label="배치 모드">
+        <button class="tab active" id="mode-circle">원형 배치</button>
+        <button class="tab" id="mode-grid">격자 배치</button>
+      </div>
     </div>
-    
-    <script>
-        // ⚠️ 여기에 Web App URL을 입력하세요!
-        const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxgPR8R0tD-eLfWV2tLcaI4SF9sCMh6tJhlYls4Yfzp84EbnoJEhJNShlmTHRqpTb-C/exec';
-        
-        const mbtiEmojis = {
-            'INTJ': '🧙', 'INTP': '🤖', 'ENTJ': '👑', 'ENTP': '💡',
-            'INFJ': '🦄', 'INFP': '🧚', 'ENFJ': '⭐', 'ENFP': '🦋',
-            'ISTJ': '📚', 'ISFJ': '🧸', 'ESTJ': '💼', 'ESFJ': '🤗',
-            'ISTP': '🔧', 'ISFP': '🎨', 'ESTP': '🏃', 'ESFP': '🎉'
-        };
-        
-        const mbtiColors = {
-            'INTJ': '#667eea', 'INTP': '#f093fb', 'ENTJ': '#4facfe', 'ENTP': '#43e97b',
-            'INFJ': '#fa709a', 'INFP': '#30cfd0', 'ENFJ': '#a8edea', 'ENFP': '#ff9a9e',
-            'ISTJ': '#fbc2eb', 'ISFJ': '#fddb92', 'ESTJ': '#f6d365', 'ESFJ': '#fccb90',
-            'ISTP': '#a1c4fd', 'ISFP': '#d4fc79', 'ESTP': '#84fab0', 'ESFP': '#fc5c7d'
-        };
-        
-        const compatibilityData = {
-            'INTJ': { excellent: ['ENFP', 'ENTP'], good: ['INFJ', 'INFP', 'ENFJ'], neutral: ['INTJ', 'ENTJ', 'INTP', 'ESTP', 'ISTP', 'ISFP'], challenging: ['ISFJ', 'ESFJ', 'ISTJ', 'ESFP', 'ESTJ'] },
-            'INTP': { excellent: ['ENTJ', 'ESTJ'], good: ['INTJ', 'ENTP', 'INFJ'], neutral: ['INTP', 'ENFP', 'INFP', 'ENFJ', 'ISTP', 'ISFP'], challenging: ['ISFJ', 'ESFJ', 'ISTJ', 'ESTP', 'ESFP'] },
-            'ENTJ': { excellent: ['INTP', 'INTJ'], good: ['ENTP', 'ENFJ', 'ENTJ'], neutral: ['INFJ', 'INFP', 'ENFP', 'ESTJ', 'ISTP', 'ESTP'], challenging: ['ISFJ', 'ESFJ', 'ISTJ', 'ISFP', 'ESFP'] },
-            'ENTP': { excellent: ['INFJ', 'INTJ'], good: ['ENFP', 'ENFJ', 'ENTJ', 'INTP'], neutral: ['ENTP', 'INFP', 'ESTP', 'ISTP'], challenging: ['ISFJ', 'ESFJ', 'ISTJ', 'ISFP', 'ESFP', 'ESTJ'] },
-            'INFJ': { excellent: ['ENTP', 'ENFP'], good: ['INTJ', 'INFJ', 'INTP', 'ENFJ'], neutral: ['INFP', 'ENTJ', 'ISFJ', 'ISTJ'], challenging: ['ESTP', 'ESFP', 'ISTP', 'ESFJ', 'ISFP', 'ESTJ'] },
-            'INFP': { excellent: ['ENFJ', 'ENTJ'], good: ['INFJ', 'INTJ', 'INTP', 'ENFP'], neutral: ['INFP', 'ENTP', 'ISFP', 'ISFJ'], challenging: ['ESTP', 'ESFP', 'ISTP', 'ESFJ', 'ISTJ', 'ESTJ'] },
-            'ENFJ': { excellent: ['INFP', 'ISFP'], good: ['ENFP', 'INFJ', 'ENFJ', 'INTJ', 'ENTJ'], neutral: ['ENTP', 'INTP', 'ESFJ', 'ISFJ'], challenging: ['ESTP', 'ESFP', 'ISTP', 'ISTJ', 'ESTJ'] },
-            'ENFP': { excellent: ['INTJ', 'INFJ'], good: ['ENTJ', 'ENTP', 'ENFJ', 'INFP'], neutral: ['ENFP', 'INTP', 'ESFP', 'ISFP'], challenging: ['ISTP', 'ESTP', 'ISFJ', 'ISTJ', 'ESFJ', 'ESTJ'] },
-            'ISTJ': { excellent: ['ESFP', 'ESTP'], good: ['ISFJ', 'ISTJ', 'ESTJ', 'ESFJ'], neutral: ['INTJ', 'INTP', 'INFJ', 'ISTP'], challenging: ['INFP', 'ENFP', 'ENFJ', 'ENTP', 'ENTJ', 'ISFP'] },
-            'ISFJ': { excellent: ['ESFP', 'ESTP'], good: ['ISFJ', 'ESFJ', 'ISTJ', 'ESTJ'], neutral: ['INFJ', 'INFP', 'ENFJ', 'ISFP'], challenging: ['INTJ', 'INTP', 'ENTP', 'ENTJ', 'ENFP', 'ISTP'] },
-            'ESTJ': { excellent: ['ISFP', 'ISTP'], good: ['ISTJ', 'ESFJ', 'ISFJ', 'ESTJ'], neutral: ['ENTJ', 'INTP', 'ESTP', 'ESFP'], challenging: ['INFJ', 'INFP', 'ENFJ', 'ENFP', 'INTJ', 'ENTP'] },
-            'ESFJ': { excellent: ['ISFP', 'ISTP'], good: ['ESFJ', 'ISFJ', 'ESTJ', 'ISTJ'], neutral: ['ENFJ', 'ISFP', 'ESFP', 'ESTP'], challenging: ['INFJ', 'INFP', 'ENFP', 'INTJ', 'INTP', 'ENTP', 'ENTJ'] },
-            'ISTP': { excellent: ['ESFJ', 'ESTJ'], good: ['INTJ', 'INTP', 'ESTP', 'ISTP'], neutral: ['ENTJ', 'ENTP', 'ISFJ', 'ISTJ', 'ISFP'], challenging: ['INFJ', 'INFP', 'ENFP', 'ENFJ', 'ESFP'] },
-            'ISFP': { excellent: ['ENFJ', 'ESFJ', 'ESTJ'], good: ['ISFJ', 'ESFP', 'ISFP'], neutral: ['INTJ', 'INTP', 'INFP', 'ENFP', 'ISTP', 'ISTJ'], challenging: ['INFJ', 'ENTJ', 'ENTP', 'ESTP'] },
-            'ESTP': { excellent: ['ISFJ', 'ISTJ'], good: ['ESFP', 'ISTP', 'ESTP', 'ESFJ'], neutral: ['ENTJ', 'ENTP', 'INTJ', 'ESTJ'], challenging: ['INFJ', 'INFP', 'ENFJ', 'ENFP', 'INTP', 'ISFP'] },
-            'ESFP': { excellent: ['ISFJ', 'ISTJ'], good: ['ESFJ', 'ESTP', 'ISFP', 'ESFP'], neutral: ['ENFP', 'ENFJ', 'ESTJ'], challenging: ['INFJ', 'INFP', 'INTJ', 'INTP', 'ENTP', 'ENTJ', 'ISTP'] }
-        };
-        
-        let nodes = [];
-        let connections = [];
-        let myData = null;
-        let currentData = [];
-        
-        window.onload = function() {
-            // 페이지 로드시 자동으로 데이터 불러오기
-            loadFromSheet();
-        };
-        
-        async function loadFromSheet() {
-            // 테스트용 샘플 데이터
-            if (SHEET_URL === 'YOUR_WEB_APP_URL_HERE') {
-                // 실제 팀 데이터처럼 13명의 샘플 데이터
-                const sampleData = [
-                    {name: '김철수', type: 'INTJ'},
-                    {name: '이영희', type: 'ENFP'},
-                    {name: '박민수', type: 'ISTP'},
-                    {name: '최지은', type: 'INFJ'},
-                    {name: '정대호', type: 'ENTP'},
-                    {name: '한소연', type: 'ISFJ'},
-                    {name: '조현우', type: 'ESTP'},
-                    {name: '윤서연', type: 'INFP'},
-                    {name: '강민재', type: 'ENTJ'},
-                    {name: '임채원', type: 'ESFJ'},
-                    {name: '송준호', type: 'ISTJ'},
-                    {name: '오수빈', type: 'ENFJ'},
-                    {name: '백하늘', type: 'ISFP'}
-                ];
-                
-                currentData = sampleData;
-                visualize(currentData);
-                updateStats(currentData);
-                
-                // 내 정보 입력 섹션 표시
-                document.getElementById('myInfoSection').style.display = 'block';
-                
-                // 버튼 텍스트 변경
-                const button = event?.target;
-                if (button) {
-                    button.innerHTML = '✅ 관계도 생성 완료!';
-                    setTimeout(() => {
-                        button.innerHTML = '👥 관계도 보기';
-                    }, 2000);
-                }
-                
-                return;
-            }
-            
-            const button = event?.target;
-            let originalText = '';
-            
-            if (button) {
-                originalText = button.innerHTML;
-                button.innerHTML = '로딩중...<span class="loading"></span>';
-                button.disabled = true;
-            }
-            
-            try {
-                const response = await fetch(SHEET_URL);
-                if (!response.ok) {
-                    throw new Error('데이터를 가져올 수 없습니다');
-                }
-                
-                const data = await response.json();
-                
-                if (!Array.isArray(data) || data.length === 0) {
-                    alert('스프레드시트에 데이터가 없습니다');
-                    return;
-                }
-                
-                // 데이터 저장
-                currentData = data.slice(0, 13);
-                
-                // 내 정보가 있으면 유지
-                if (myData) {
-                    visualize(currentData);
-                    updateStats(currentData);
-                } else {
-                    // 처음 로드시 전체 데이터만 표시
-                    visualize(currentData);
-                    updateStats(currentData);
-                    
-                    // 내 정보 입력 섹션 표시
-                    document.getElementById('myInfoSection').style.display = 'block';
-                }
-                
-                if (button) {
-                    button.innerHTML = '✅ 관계도 생성 완료!';
-                    setTimeout(() => {
-                        button.innerHTML = '👥 관계도 보기';
-                    }, 2000);
-                }
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('데이터 불러오기 실패\n' + error.message);
-                if (button) button.innerHTML = originalText;
-            } finally {
-                if (button) button.disabled = false;
-            }
+
+    <div class="controls">
+      <div class="row">
+        <button id="btn-load" class="btn btn-primary">👥 관계도 불러오기</button>
+        <button id="btn-reset" class="btn btn-outline">초기화</button>
+      </div>
+
+      <div class="searchrow">
+        <input id="q" class="input" placeholder="🔎 이름 또는 MBTI(예: ENFP) 검색" />
+        <select id="filterMbti">
+          <option value="">MBTI 필터</option>
+          <option>INTJ</option><option>INTP</option><option>ENTJ</option><option>ENTP</option>
+          <option>INFJ</option><option>INFP</option><option>ENFJ</option><option>ENFP</option>
+          <option>ISTJ</option><option>ISFJ</option><option>ESTJ</option><option>ESFJ</option>
+          <option>ISTP</option><option>ISFP</option><option>ESTP</option><option>ESFP</option>
+        </select>
+      </div>
+
+      <div class="row sheetbox">
+        <div class="mebox">
+          <div class="label">📍 내 위치 추가</div>
+          <div class="row">
+            <input id="myName" class="input" placeholder="내 이름(선택)" />
+            <select id="myMbti" class="input">
+              <option value="">내 MBTI 선택</option>
+              <option>INTJ</option><option>INTP</option><option>ENTJ</option><option>ENTP</option>
+              <option>INFJ</option><option>INFP</option><option>ENFJ</option><option>ENFP</option>
+              <option>ISTJ</option><option>ISFJ</option><option>ESTJ</option><option>ESFJ</option>
+              <option>ISTP</option><option>ISFP</option><option>ESTP</option><option>ESFP</option>
+            </select>
+          </div>
+          <div class="row">
+            <button id="btn-me" class="btn btn-primary">⭐ 내 기준 관계도 보기</button>
+          </div>
+          <div class="helper">* 내 MBTI를 선택하면 나와 팀원 간 ‘최고/도전적’ 궁합 수치를 바로 확인합니다.</div>
+        </div>
+
+        <div class="gridbox">
+          <div class="label">🧹 데이터 정제</div>
+          <div class="row">
+            <span class="chip" id="chip-dup">중복 자동 제거</span>
+            <span class="chip" id="chip-trim">대소문자·공백 정리</span>
+          </div>
+          <div class="helper">* 같은 이름+MBTI가 여러 번 있으면 1개만 유지합니다.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="viz-wrap">
+      <svg id="wires" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0"></svg>
+      <div id="stage" aria-live="polite"></div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#22c55e"></span>최고</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span>좋음</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>보통</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>도전적</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="v" id="totalCount">0</div><div class="k">총 인원</div></div>
+      <div class="stat"><div class="v" id="excellentCount">-</div><div class="k">최고 궁합</div></div>
+      <div class="stat"><div class="v" id="challengingCount">-</div><div class="k">도전적</div></div>
+    </div>
+
+    <div id="sheet" class="bottomsheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <div class="sheet-head">
+        <div class="sheet-title" id="sheetTitle">상세</div>
+        <button class="x" id="sheetClose" aria-label="닫기">✕</button>
+      </div>
+      <div id="sheetBody" style="font-size:14px;line-height:1.7"></div>
+    </div>
+  </div>
+
+  <script>
+    // ====== 환경설정 ======
+    const SHEET_URL = "https://script.google.com/macros/s/AKfycbxgPR8R0tD-eLfWV2tLcaI4SF9sCMh6tJhlYls4Yfzp84EbnoJEhJNShlmTHRqpTb-C/exec";
+    const MAX_NODES = 30; // 과도한 데이터 시 UI 보호
+
+    const mbtiEmojis = {
+      INTJ:"🧙", INTP:"🤖", ENTJ:"👑", ENTP:"💡",
+      INFJ:"🦄", INFP:"🧚", ENFJ:"⭐", ENFP:"🦋",
+      ISTJ:"📚", ISFJ:"🧸", ESTJ:"💼", ESFJ:"🤗",
+      ISTP:"🔧", ISFP:"🎨", ESTP:"🏃", ESFP:"🎉"
+    };
+    const mbtiColor = {
+      INTJ:"#667eea", INTP:"#f093fb", ENTJ:"#4facfe", ENTP:"#43e97b",
+      INFJ:"#fa709a", INFP:"#30cfd0", ENFJ:"#a8edea", ENFP:"#ff9a9e",
+      ISTJ:"#fbc2eb", ISFJ:"#fddb92", ESTJ:"#f6d365", ESFJ:"#fccb90",
+      ISTP:"#a1c4fd", ISFP:"#d4fc79", ESTP:"#84fab0", ESFP:"#fc5c7d"
+    };
+
+    const comp = {
+      INTJ:{excellent:["ENFP","ENTP"],good:["INFJ","INFP","ENFJ"],neutral:["INTJ","ENTJ","INTP","ESTP","ISTP","ISFP"],challenging:["ISFJ","ESFJ","ISTJ","ESFP","ESTJ"]},
+      INTP:{excellent:["ENTJ","ESTJ"],good:["INTJ","ENTP","INFJ"],neutral:["INTP","ENFP","INFP","ENFJ","ISTP","ISFP"],challenging:["ISFJ","ESFJ","ISTJ","ESTP","ESFP"]},
+      ENTJ:{excellent:["INTP","INTJ"],good:["ENTP","ENFJ","ENTJ"],neutral:["INFJ","INFP","ENFP","ESTJ","ISTP","ESTP"],challenging:["ISFJ","ESFJ","ISTJ","ISFP","ESFP"]},
+      ENTP:{excellent:["INFJ","INTJ"],good:["ENFP","ENFJ","ENTJ","INTP"],neutral:["ENTP","INFP","ESTP","ISTP"],challenging:["ISFJ","ESFJ","ISTJ","ISFP","ESFP","ESTJ"]},
+      INFJ:{excellent:["ENTP","ENFP"],good:["INTJ","INFJ","INTP","ENFJ"],neutral:["INFP","ENTJ","ISFJ","ISTJ"],challenging:["ESTP","ESFP","ISTP","ESFJ","ISFP","ESTJ"]},
+      INFP:{excellent:["ENFJ","ENTJ"],good:["INFJ","INTJ","INTP","ENFP"],neutral:["INFP","ENTP","ISFP","ISFJ"],challenging:["ESTP","ESFP","ISTP","ESFJ","ISTJ","ESTJ"]},
+      ENFJ:{excellent:["INFP","ISFP"],good:["ENFP","INFJ","ENFJ","INTJ","ENTJ"],neutral:["ENTP","INTP","ESFJ","ISFJ"],challenging:["ESTP","ESFP","ISTP","ISTJ","ESTJ"]},
+      ENFP:{excellent:["INTJ","INFJ"],good:["ENTJ","ENTP","ENFJ","INFP"],neutral:["ENFP","INTP","ESFP","ISFP"],challenging:["ISTP","ESTP","ISFJ","ISTJ","ESFJ","ESTJ"]},
+      ISTJ:{excellent:["ESFP","ESTP"],good:["ISFJ","ISTJ","ESTJ","ESFJ"],neutral:["INTJ","INTP","INFJ","ISTP"],challenging:["INFP","ENFP","ENFJ","ENTP","ENTJ","ISFP"]},
+      ISFJ:{excellent:["ESFP","ESTP"],good:["ISFJ","ESFJ","ISTJ","ESTJ"],neutral:["INFJ","INFP","ENFJ","ISFP"],challenging:["INTJ","INTP","ENTP","ENTJ","ENFP","ISTP"]},
+      ESTJ:{excellent:["ISFP","ISTP"],good:["ISTJ","ESFJ","ISFJ","ESTJ"],neutral:["ENTJ","INTP","ESTP","ESFP"],challenging:["INFJ","INFP","ENFJ","ENFP","INTJ","ENTP"]},
+      ESFJ:{excellent:["ISFP","ISTP"],good:["ESFJ","ISFJ","ESTJ","ISTJ"],neutral:["ENFJ","ISFP","ESFP","ESTP"],challenging:["INFJ","INFP","ENFP","INTJ","INTP","ENTP","ENTJ"]},
+      ISTP:{excellent:["ESFJ","ESTJ"],good:["INTJ","INTP","ESTP","ISTP"],neutral:["ENTJ","ENTP","ISFJ","ISTJ","ISFP"],challenging:["INFJ","INFP","ENFP","ENFJ","ESFP"]},
+      ISFP:{excellent:["ENFJ","ESFJ","ESTJ"],good:["ISFJ","ESFP","ISFP"],neutral:["INTJ","INTP","INFP","ENFP","ISTP","ISTJ"],challenging:["INFJ","ENTJ","ENTP","ESTP"]},
+      ESTP:{excellent:["ISFJ","ISTJ"],good:["ESFP","ISTP","ESTP","ESFJ"],neutral:["ENTJ","ENTP","INTJ","ESTJ"],challenging:["INFJ","INFP","ENFJ","ENFP","INTP","ISFP"]},
+      ESFP:{excellent:["ISFJ","ISTJ"],good:["ESFJ","ESTP","ISFP","ESFP"],neutral:["ENFP","ENFJ","ESTJ"],challenging:["INFJ","INFP","INTJ","INTP","ENTP","ENTJ","ISTP"]}
+    };
+
+    // ====== 상태 ======
+    let raw = [];       // 원본
+    let people = [];    // 정제 후
+    let me = null;      // {name, type, isMe:true}
+    let layoutMode = "circle"; // circle | grid
+
+    const el = s => document.querySelector(s);
+    const els = s => document.querySelectorAll(s);
+
+    // ====== 유틸 ======
+    const sleep = ms => new Promise(r=>setTimeout(r, ms));
+    const withTimeout = (p, ms=9000) => Promise.race([
+      p, new Promise((_,rej)=>setTimeout(()=>rej(new Error("요청 시간초과")), ms))
+    ]);
+
+    function normalizeName(n){
+      return (n??"").toString().replace(/\s+/g," ").trim();
+    }
+    function normalizeType(t){
+      t = (t??"").toString().toUpperCase().trim();
+      return /^[IE][NS][TF][JP]$/.test(t)?t:"";
+    }
+
+    function dedupe(list){
+      const seen = new Set();
+      const out = [];
+      for(const r of list){
+        const key = `${normalizeName(r.name)}|${normalizeType(r.type)}`;
+        if(!seen.has(key) && normalizeType(r.type)){
+          seen.add(key);
+          out.push({name:normalizeName(r.name), type:normalizeType(r.type)});
         }
-        
-        function addMyMbti() {
-            const myName = document.getElementById('myName').value.trim();
-            const myMbti = document.getElementById('myMbti').value;
-            
-            if (!myMbti) {
-                alert('MBTI를 선택해주세요!');
-                return;
-            }
-            
-            myData = {
-                name: myName || '나',
-                type: myMbti,
-                isMe: true
-            };
-            
-            // 현재 데이터로 다시 시각화
-            visualize(currentData);
-            updateStats(currentData);
-            
-            // 버튼 텍스트 변경
-            const button = event.target;
-            button.innerHTML = '✨ 관계도 업데이트 완료!';
-            setTimeout(() => {
-                button.innerHTML = '⭐ 내 위치로 관계도 보기';
-            }, 2000);
-        }
-        
-        function visualize(data) {
-            const container = document.getElementById('canvas-container');
-            container.innerHTML = '';
-            nodes = [];
-            connections = [];
-            
-            if (myData) {
-                data = [myData, ...data.filter(d => !d.isMe)].slice(0, 13);
-            }
-            
-            const rect = container.getBoundingClientRect();
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            
-            const radiusRatio = Math.min(rect.width, rect.height) < 400 ? 0.35 : 0.4;
-            const radius = Math.min(centerX, centerY) * radiusRatio;
-            
-            data.forEach((person, index) => {
-                const angle = (index * 2 * Math.PI) / data.length - Math.PI / 2;
-                const x = centerX + radius * Math.cos(angle);
-                const y = centerY + radius * Math.sin(angle);
-                
-                const node = createNode(person, x, y);
-                container.appendChild(node);
-                nodes.push({ element: node, data: person, x, y });
-            });
-            
-            drawConnections();
-        }
-        
-        function createNode(person, x, y) {
-            const node = document.createElement('div');
-            node.className = 'mbti-node';
-            
-            const isMe = person.isMe;
-            const nodeSize = isMe ? 30 : 25;
-            
-            node.style.left = (x - nodeSize) + 'px';
-            node.style.top = (y - nodeSize) + 'px';
-            
-            const circle = document.createElement('div');
-            circle.className = 'node-circle' + (isMe ? ' me' : '');
-            circle.style.background = `linear-gradient(135deg, ${mbtiColors[person.type]}, ${mbtiColors[person.type]}dd)`;
-            circle.innerHTML = mbtiEmojis[person.type] || '❓';
-            
-            const label = document.createElement('div');
-            label.className = 'node-label';
-            label.textContent = person.type;
-            label.style.color = mbtiColors[person.type];
-            
-            node.appendChild(circle);
-            node.appendChild(label);
-            
-            if (person.name) {
-                const name = document.createElement('div');
-                name.className = 'node-name';
-                name.textContent = person.name;
-                node.appendChild(name);
-            }
-            
-            node.addEventListener('click', (e) => {
-                e.stopPropagation();
-                handleNodeClick(person);
-            });
-            
-            return node;
-        }
-        
-        function handleNodeClick(person) {
-            nodes.forEach(n => n.element.classList.remove('active'));
-            
-            const clickedNode = nodes.find(n => n.data === person);
-            if (clickedNode) {
-                clickedNode.element.classList.add('active');
-            }
-            
-            if (myData && !person.isMe) {
-                highlightConnection(myData.type, person.type);
-            } else if (person.isMe) {
-                highlightAllMyConnections();
-            }
-            
-            showPopup(person);
-        }
-        
-        function drawConnections() {
-            const container = document.getElementById('canvas-container');
-            
-            if (myData) {
-                const myNode = nodes.find(n => n.data.isMe);
-                if (!myNode) return;
-                
-                nodes.forEach(node => {
-                    if (!node.data.isMe) {
-                        const line = createConnection(myNode, node);
-                        container.appendChild(line);
-                        connections.push(line);
-                    }
-                });
-            } else {
-                for (let i = 0; i < nodes.length; i++) {
-                    for (let j = i + 1; j < nodes.length; j++) {
-                        const line = createConnection(nodes[i], nodes[j]);
-                        line.style.opacity = '0.1';
-                        container.appendChild(line);
-                        connections.push(line);
-                    }
-                }
-            }
-        }
-        
-        function createConnection(node1, node2) {
-            const line = document.createElement('div');
-            const compatibility = getCompatibilityLevel(node1.data.type, node2.data.type);
-            line.className = `connection-line connection-${compatibility}`;
-            
-            const dx = node2.x - node1.x;
-            const dy = node2.y - node1.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-            
-            line.style.width = distance + 'px';
-            line.style.left = node1.x + 'px';
-            line.style.top = node1.y + 'px';
-            line.style.transform = `rotate(${angle}deg)`;
-            line.dataset.type1 = node1.data.type;
-            line.dataset.type2 = node2.data.type;
-            
-            return line;
-        }
-        
-        function getCompatibilityLevel(type1, type2) {
-            if (!compatibilityData[type1]) return 'neutral';
-            
-            if (compatibilityData[type1].excellent.includes(type2)) return 'excellent';
-            if (compatibilityData[type1].good.includes(type2)) return 'good';
-            if (compatibilityData[type1].challenging.includes(type2)) return 'challenging';
-            return 'neutral';
-        }
-        
-        function highlightConnection(type1, type2) {
-            connections.forEach(line => {
-                if ((line.dataset.type1 === type1 && line.dataset.type2 === type2) ||
-                    (line.dataset.type1 === type2 && line.dataset.type2 === type1)) {
-                    line.classList.add('highlight');
-                } else {
-                    line.classList.remove('highlight');
-                }
-            });
-        }
-        
-        function highlightAllMyConnections() {
-            connections.forEach(line => {
-                line.classList.add('highlight');
-            });
-        }
-        
-        function showPopup(person) {
-            const popup = document.getElementById('infoPopup');
-            const title = document.getElementById('popupTitle');
-            const content = document.getElementById('popupContent');
-            
-            title.innerHTML = `${mbtiEmojis[person.type]} ${person.name || person.type}`;
-            
-            if (myData && !person.isMe) {
-                const compatibility = getCompatibilityLevel(myData.type, person.type);
-                const compatText = {
-                    'excellent': '💚 최고의 궁합입니다!',
-                    'good': '💙 좋은 궁합입니다',
-                    'neutral': '💛 보통 관계입니다',
-                    'challenging': '🧡 도전적 관계입니다'
-                };
-                
-                content.innerHTML = `
-                    <div style="margin-bottom: 10px;">
-                        <strong>${myData.type} ↔ ${person.type}</strong>
-                    </div>
-                    <div style="font-size: 16px; margin-bottom: 15px;">
-                        ${compatText[compatibility]}
-                    </div>
-                    <div style="font-size: 12px; line-height: 1.6;">
-                        💡 <strong>관계 팁:</strong><br>
-                        ${getRelationshipTip(myData.type, person.type, compatibility)}
-                    </div>
-                `;
-            } else {
-                const compatibility = compatibilityData[person.type];
-                content.innerHTML = `
-                    <div style="font-size: 14px; line-height: 1.8;">
-                        <div>💚 최고 궁합: ${compatibility.excellent.join(', ')}</div>
-                        <div>💙 좋은 궁합: ${compatibility.good.join(', ')}</div>
-                        <div>💛 보통: ${compatibility.neutral.join(', ')}</div>
-                        <div>🧡 도전적: ${compatibility.challenging.join(', ')}</div>
-                    </div>
-                `;
-            }
-            
-            popup.classList.add('show');
-        }
-        
-        function closePopup() {
-            document.getElementById('infoPopup').classList.remove('show');
-            nodes.forEach(n => n.element.classList.remove('active'));
-            connections.forEach(line => line.classList.remove('highlight'));
-        }
-        
-        function getRelationshipTip(type1, type2, level) {
-            const tips = {
-                'excellent': '서로를 보완하는 최고의 파트너입니다. 자연스러운 이해와 시너지를 만들어냅니다.',
-                'good': '서로를 잘 이해하고 협력할 수 있습니다. 좋은 팀워크를 발휘할 수 있습니다.',
-                'neutral': '서로를 이해하려는 노력이 필요합니다. 차이를 인정하고 존중하세요.',
-                'challenging': '다른 관점을 가지고 있습니다. 인내심을 갖고 소통하면 성장할 수 있습니다.'
-            };
-            return tips[level];
-        }
-        
-        function updateStats(data) {
-            const total = data.filter(d => !d.isMe).length;
-            document.getElementById('totalCount').textContent = total;
-            
-            if (myData) {
-                const excellent = data.filter(p => !p.isMe && 
-                    compatibilityData[myData.type].excellent.includes(p.type));
-                const challenging = data.filter(p => !p.isMe && 
-                    compatibilityData[myData.type].challenging.includes(p.type));
-                
-                document.getElementById('excellentCount').textContent = excellent.length;
-                document.getElementById('challengingCount').textContent = challenging.length;
-            } else {
-                document.getElementById('excellentCount').textContent = '-';
-                document.getElementById('challengingCount').textContent = '-';
-            }
-        }
-        
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.mbti-node') && !e.target.closest('.info-popup')) {
-                closePopup();
-            }
+      }
+      return out;
+    }
+
+    function filterPeople(){
+      const q = el("#q").value.trim().toLowerCase();
+      const f = el("#filterMbti").value;
+      return people.filter(p=>{
+        const okQ = q ? (p.name?.toLowerCase().includes(q) || p.type.toLowerCase().includes(q)) : true;
+        const okF = f ? p.type===f : true;
+        return okQ && okF;
+      });
+    }
+
+    // ====== 데이터 로드 ======
+    async function loadData(){
+      const btn = el("#btn-load");
+      btn.disabled = true;
+      btn.textContent = "로딩 중…";
+      try{
+        const url = SHEET_URL + (SHEET_URL.includes("?")?"&":"?") + "_="+Date.now();
+        const res = await withTimeout(fetch(url, {cache:"no-store"}));
+        if(!res.ok) throw new Error("스프레드시트 응답 오류");
+        const json = await res.json();
+
+        if(!Array.isArray(json)) throw new Error("형식 오류: 배열이 아님");
+
+        // 형식 표준화
+        raw = json.map(r=>({name:normalizeName(r.name??r.이름), type:normalizeType(r.type??r.MBTI)}));
+        // 정제 & 중복제거
+        people = dedupe(raw).slice(0, MAX_NODES);
+
+        render();
+        updateStats();
+        btn.textContent = "✅ 로드 완료";
+        await sleep(800);
+        btn.textContent = "👥 관계도 불러오기";
+      }catch(e){
+        console.error(e);
+        alert("데이터 불러오기 실패: " + e.message + "\n웹앱 URL 공개설정/권한을 확인해주세요.");
+        btn.textContent = "다시 시도";
+      }finally{
+        btn.disabled = false;
+      }
+    }
+
+    // ====== 렌더링 ======
+    const stage = el("#stage");
+    const wires = el("#wires");
+
+    function render(){
+      stage.innerHTML = "";
+      wires.innerHTML = "";
+
+      const data = filterPeople();
+      const all = me ? [me, ...data] : data;
+      if(all.length===0){
+        stage.innerHTML = `<div style="position:absolute;inset:0;display:grid;place-items:center;color:#94a3b8">표시할 데이터가 없습니다</div>`;
+        setStats("-", "-", me?0:0);
+        return;
+      }
+
+      const rect = stage.getBoundingClientRect();
+      const cx = rect.width/2, cy = rect.height/2;
+
+      // 노드 좌표 계산
+      const nodes = [];
+      if(layoutMode==="circle"){
+        const R = Math.min(cx, cy) * (all.length>10?0.68:0.58);
+        all.forEach((p,i)=>{
+          const ang = (i/all.length)*Math.PI*2 - Math.PI/2;
+          const x = cx + R*Math.cos(ang);
+          const y = cy + R*Math.sin(ang);
+          nodes.push({p,x,y});
         });
-    </script>
+      }else{ // grid
+        const cols = Math.ceil(Math.sqrt(all.length));
+        const rows = Math.ceil(all.length/cols);
+        const pad = 16;
+        const cellW = (rect.width - pad*2)/cols;
+        const cellH = (rect.height - pad*2)/rows;
+        all.forEach((p,i)=>{
+          const r = Math.floor(i/cols);
+          const c = i%cols;
+          const x = pad + c*cellW + cellW/2;
+          const y = pad + r*cellH + cellH/2;
+          nodes.push({p,x,y});
+        });
+      }
+
+      // 연결선 (나 기준) or 희미한 전부
+      const lines = [];
+      if(me){
+        const meNode = nodes.find(n=>n.p.isMe);
+        nodes.forEach(n=>{
+          if(n===meNode) return;
+          lines.push(makeLine(meNode, n));
+        });
+      }else{
+        for(let i=0;i<nodes.length;i++){
+          for(let j=i+1;j<nodes.length;j++){
+            const L = makeLine(nodes[i], nodes[j]);
+            L.style.opacity = .15;
+            lines.push(L);
+          }
+        }
+      }
+      lines.forEach(L=>wires.appendChild(L));
+
+      // 노드
+      nodes.forEach(n=>{
+        const node = makeNode(n.p);
+        const size = n.p.isMe?30:24;
+        node.style.left = (n.x - size) + "px";
+        node.style.top  = (n.y - size) + "px";
+        stage.appendChild(node);
+      });
+    }
+
+    function makeLine(a,b){
+      const level = getLevel(a.p.type, b.p.type);
+      const color = ({
+        excellent:"#22c55e",
+        good:"#3b82f6",
+        neutral:"#f59e0b",
+        challenging:"#ef4444"
+      })[level] || "#94a3b8";
+
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", a.x); line.setAttribute("y1", a.y);
+      line.setAttribute("x2", b.x); line.setAttribute("y2", b.y);
+      line.setAttribute("stroke", color);
+      line.setAttribute("stroke-width", me?3:2);
+      line.setAttribute("data-t1", a.p.type);
+      line.setAttribute("data-t2", b.p.type);
+      return line;
+    }
+
+    function makeNode(p){
+      const wrap = document.createElement("div");
+      wrap.className = "node";
+      wrap.style.position = "absolute";
+      wrap.style.display = "flex";
+      wrap.style.flexDirection = "column";
+      wrap.style.alignItems = "center";
+      wrap.style.cursor = "pointer";
+      wrap.style.transition = "transform .15s";
+      wrap.onpointerdown = e => e.stopPropagation();
+
+      const circle = document.createElement("div");
+      circle.style.width = p.isMe?"60px":"50px";
+      circle.style.height = p.isMe?"60px":"50px";
+      circle.style.borderRadius = "50%";
+      circle.style.display = "grid";
+      circle.style.placeItems = "center";
+      circle.style.fontSize = p.isMe?"26px":"22px";
+      circle.style.background = `linear-gradient(135deg, ${mbtiColor[p.type]||"#ddd"}, ${(mbtiColor[p.type]||"#ddd")}dd)`;
+      circle.style.border = p.isMe ? "3px solid gold":"2px solid #fff";
+      circle.style.boxShadow = p.isMe ? "0 0 15px rgba(255,215,0,.5)":"0 4px 12px rgba(0,0,0,.12)";
+      if(p.isMe){
+        circle.style.animation = "pulse 2s infinite";
+      }
+      circle.textContent = mbtiEmojis[p.type]||"❓";
+
+      const label = document.createElement("div");
+      label.textContent = p.type;
+      label.style.marginTop = "4px";
+      label.style.padding = "2px 8px";
+      label.style.borderRadius = "999px";
+      label.style.background = "#fff";
+      label.style.fontSize = "12px";
+      label.style.fontWeight = "800";
+      label.style.color = mbtiColor[p.type]||"#334155";
+      label.style.boxShadow = "0 2px 6px rgba(0,0,0,.08)";
+
+      const name = document.createElement("div");
+      name.textContent = p.name || (p.isMe?"나":"");
+      name.style.marginTop = "2px";
+      name.style.fontSize = "11px";
+      name.style.color = "#475569";
+      name.style.maxWidth = "84px";
+      name.style.whiteSpace = "nowrap";
+      name.style.overflow = "hidden";
+      name.style.textOverflow = "ellipsis";
+
+      wrap.appendChild(circle);
+      wrap.appendChild(label);
+      if(name.textContent) wrap.appendChild(name);
+
+      wrap.addEventListener("click", ()=>{
+        highlight(p);
+        openSheet(p);
+      });
+
+      return wrap;
+    }
+
+    function getLevel(t1, t2){
+      const m = comp[t1];
+      if(!m) return "neutral";
+      if(m.excellent.includes(t2)) return "excellent";
+      if(m.good.includes(t2)) return "good";
+      if(m.challenging.includes(t2)) return "challenging";
+      return "neutral";
+    }
+
+    function highlight(target){
+      // 노드 확대 효과는 CSS로 간단 처리(선택된 노드만 확대가 필요하면 dataset 사용)
+      // 연결선 하이라이트
+      [...wires.querySelectorAll("line")].forEach(L=>{
+        const t1 = L.getAttribute("data-t1");
+        const t2 = L.getAttribute("data-t2");
+        const on = me
+          ? (target.isMe ? (t1===me.type || t2===me.type) : ( (t1===me.type && t2===target.type) || (t2===me.type && t1===target.type) ))
+          : (t1===target.type || t2===target.type);
+        L.setAttribute("stroke-opacity", on?1:.15);
+        L.setAttribute("stroke-width", on?4: (me?3:2));
+      });
+    }
+
+    // ====== 상세 바텀시트 ======
+    const sheetEl = el("#sheet");
+    function openSheet(p){
+      const title = el("#sheetTitle");
+      const body = el("#sheetBody");
+      title.textContent = `${mbtiEmojis[p.type]||"❓"} ${p.name || p.type}`;
+      if(me && !p.isMe){
+        const level = getLevel(me.type, p.type);
+        const label = ({
+          excellent:"💚 최고의 궁합",
+          good:"💙 좋은 궁합",
+          neutral:"💛 보통",
+          challenging:"🧡 도전적"
+        })[level];
+        body.innerHTML = `
+          <div style="margin-bottom:10px"><b>${me.type} ↔ ${p.type}</b></div>
+          <div style="font-size:16px;margin-bottom:12px">${label}</div>
+          <div style="font-size:13px;line-height:1.7">
+            <b>관계 팁</b><br/>
+            ${relationTip(level)}
+          </div>`;
+      }else{
+        const m = comp[p.type]||{excellent:[],good:[],neutral:[],challenging:[]};
+        body.innerHTML = `
+          <div style="display:grid;gap:6px;font-size:13px">
+            <div>💚 <b>최고</b> : ${m.excellent.join(", ")||"-"}</div>
+            <div>💙 <b>좋음</b> : ${m.good.join(", ")||"-"}</div>
+            <div>💛 <b>보통</b> : ${m.neutral.join(", ")||"-"}</div>
+            <div>🧡 <b>도전적</b> : ${m.challenging.join(", ")||"-"}</div>
+          </div>`;
+      }
+      sheetEl.classList.add("show");
+    }
+    function relationTip(level){
+      switch(level){
+        case "excellent": return "서로의 부족한 부분을 자연스럽게 채워주니 속도와 품질을 동시에 노리세요. 빠른 합의와 역할 분담이 잘 맞습니다.";
+        case "good": return "가벼운 브리핑과 정기 싱크로 충분합니다. 의사결정 기록만 남기면 실행력이 좋아집니다.";
+        case "neutral": return "용어·기준이 달라 생기는 오해를 먼저 줄이세요. 정의(Definition) 정렬 → 일정 합의 순이 좋습니다.";
+        case "challenging": return "목표-기준-역할을 문서로 고정하세요. 감정 대신 데이터·산출물로 소통하면 성장의 발판이 됩니다.";
+        default: return "상대의 강점을 먼저 인정하고 공통 목표를 명료하게 두면 대부분의 문제가 정리됩니다.";
+      }
+    }
+    el("#sheetClose").addEventListener("click", ()=> sheetEl.classList.remove("show"));
+    document.addEventListener("click",(e)=>{
+      if(!e.target.closest("#sheet") && !e.target.closest(".node")){
+        sheetEl.classList.remove("show");
+        // 연결선 원복
+        [...wires.querySelectorAll("line")].forEach(L=>{
+          L.setAttribute("stroke-opacity", me?1:.15);
+          L.setAttribute("stroke-width", me?3:2);
+        });
+      }
+    });
+
+    // ====== 통계 ======
+    function updateStats(){
+      const data = filterPeople();
+      const total = data.length;
+      if(me){
+        const ex = data.filter(p=>comp[me.type]?.excellent.includes(p.type)).length;
+        const ch = data.filter(p=>comp[me.type]?.challenging.includes(p.type)).length;
+        setStats(ex, ch, total);
+      }else{
+        setStats("-", "-", total);
+      }
+    }
+    function setStats(ex, ch, total){
+      el("#excellentCount").textContent = ex;
+      el("#challengingCount").textContent = ch;
+      el("#totalCount").textContent = total;
+    }
+
+    // ====== 이벤트 ======
+    el("#btn-load").addEventListener("click", loadData);
+    el("#btn-reset").addEventListener("click", ()=>{
+      el("#q").value = "";
+      el("#filterMbti").value = "";
+      me=null; render(); updateStats();
+    });
+    el("#btn-me").addEventListener("click", ()=>{
+      const name = normalizeName(el("#myName").value);
+      const type = normalizeType(el("#myMbti").value);
+      if(!type){ alert("내 MBTI를 선택하세요."); return; }
+      me = {name: name || "나", type, isMe:true};
+      render(); updateStats();
+    });
+    el("#q").addEventListener("input", ()=>{ render(); updateStats(); });
+    el("#filterMbti").addEventListener("change", ()=>{ render(); updateStats(); });
+
+    // 배치 전환
+    el("#mode-circle").addEventListener("click", ()=>{
+      layoutMode="circle";
+      el("#mode-circle").classList.add("active");
+      el("#mode-grid").classList.remove("active");
+      render();
+    });
+    el("#mode-grid").addEventListener("click", ()=>{
+      layoutMode="grid";
+      el("#mode-grid").classList.add("active");
+      el("#mode-circle").classList.remove("active");
+      render();
+    });
+
+    // 반응형 리드로우
+    let ro = new ResizeObserver(()=> render());
+    ro.observe(el(".viz-wrap"));
+
+    // 초기 자동 로드
+    window.addEventListener("load", loadData);
+
+    // 키보드 접근성(검색 포커스 시 ESC로 지우기)
+    document.addEventListener("keydown",(e)=>{
+      if(e.key==="Escape" && document.activeElement===el("#q")){
+        el("#q").value=""; render(); updateStats();
+      }
+    });
+  </script>
+
+  <style>
+    @keyframes pulse {0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  </style>
 </body>
 </html>
