@@ -2,51 +2,30 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>MBTI 관계도 | LS TourPass</title>
   <style>
     :root{
-      --brand-start:#5b7cfa;
-      --brand-end:#7a53c8;
-      --ink:#0f172a;
-      --ink-2:#334155;
-      --muted:#64748b;
-      --bg:#ffffff;
-      --panel:#f8fafc;
-      --line:#e2e8f0;
-      --ok:#10b981;
-      --warn:#f59e0b;
-      --bad:#ef4444;
-      --chip:#eef2ff;
+      --brand-start:#5b7cfa; --brand-end:#7a53c8; --ink:#0f172a; --ink-2:#334155; --muted:#64748b;
+      --bg:#ffffff; --panel:#f8fafc; --line:#e2e8f0; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444; --chip:#eef2ff;
     }
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
     html,body{height:100%}
-    body{
-      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-      background:linear-gradient(135deg,var(--brand-start),var(--brand-end));
-      color:var(--ink);
-      overflow:hidden;
-    }
-    .app{
-      display:flex;flex-direction:column;height:100%;max-width:820px;margin:0 auto;background:var(--bg);
-      box-shadow:0 10px 30px rgba(0,0,0,.12)
-    }
-    .header{
-      background:linear-gradient(135deg,var(--brand-start),var(--brand-end));
-      color:#fff;padding:12px 14px;display:flex;align-items:center;justify-content:space-between
-    }
-    .title{font-weight:700;font-size:16px;letter-spacing:.2px;display:flex;gap:8px;align-items:center}
-    .controls{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 12px}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+      background:linear-gradient(135deg,var(--brand-start),var(--brand-end)); color:var(--ink); overflow:hidden}
+    .app{display:flex;flex-direction:column;height:100%;max-width:820px;margin:0 auto;background:var(--bg);
+      border-radius:18px; box-shadow:0 14px 36px rgba(0,0,0,.16)}
+    .header{background:linear-gradient(135deg,var(--brand-start),var(--brand-end)); color:#fff;
+      padding:16px 14px;display:flex;align-items:center;justify-content:space-between}
+    .title{font-weight:800;font-size:18px;letter-spacing:.2px;display:flex;gap:8px;align-items:center}
+    .controls{background:var(--panel);border-bottom:1px solid var(--line);padding:12px}
     .row{display:flex;gap:8px;flex-wrap:wrap}
     .row+.row{margin-top:8px}
-    .btn{appearance:none;border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer}
-    .btn-primary{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;flex:1;min-width:140px}
-    .btn-outline{background:#fff;border:2px solid var(--brand-start);color:var(--brand-start);font-weight:700}
-    .input,select{flex:1;min-width:120px;background:#fff;border:2px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
-    .chip{background:var(--chip);padding:6px 10px;border-radius:999px;font-size:12px;color:#3730a3;font-weight:700}
+    .btn{appearance:none;border:0;border-radius:12px;padding:10px 12px;font-weight:800;cursor:pointer}
+    .btn-primary{background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;flex:1;min-width:160px}
+    .btn-outline{background:#fff;border:2px solid var(--brand-start);color:var(--brand-start);font-weight:800}
+    .input,select{flex:1;min-width:140px;background:#fff;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px}
+    .chip{background:var(--chip);padding:6px 10px;border-radius:999px;font-size:12px;color:#3730a3;font-weight:800}
 
     .viz-wrap{position:relative;flex:1;min-height:420px;overflow:hidden;background:linear-gradient(135deg,#fff6fb,#eef7ff)}
     #stage{position:absolute;inset:0}
@@ -54,70 +33,42 @@
     .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2)}
     .legend-dot{width:18px;height:4px;border-radius:4px;display:inline-block}
     .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 12px;background:#fff;border-top:1px solid var(--line)}
-    .stat{background:linear-gradient(180deg,#f6f7fb,#eaeef7);border-radius:10px;padding:8px;text-align:center}
-    .stat .v{font-weight:800}
+    .stat{background:linear-gradient(180deg,#f6f7fb,#eaeef7);border-radius:12px;padding:10px;text-align:center}
+    .stat .v{font-weight:900}
     .stat .k{font-size:11px;color:var(--muted)}
     .sheetbox{display:grid;grid-template-columns:1.2fr 1fr;gap:8px}
-    .mebox{background:#eef6ff;border:1px solid #c7dbff;border-radius:10px;padding:8px}
-    .gridbox{background:#f0fff7;border:1px solid #c8f3dd;border-radius:10px;padding:8px}
-    .label{font-size:12px;color:#1e40af;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+    .mebox{background:#eef6ff;border:1px solid #c7dbff;border-radius:12px;padding:8px}
+    .gridbox{background:#f0fff7;border:1px solid #c8f3dd;border-radius:12px;padding:8px}
+    .label{font-size:12px;color:#1e40af;font-weight:900;margin-bottom:6px;display:flex;align-items:center;gap:6px}
     .helper{font-size:12px;color:var(--muted)}
-    .bottomsheet{
-      position:fixed;left:0;right:0;bottom:-100%;background:#fff;border-top-left-radius:16px;border-top-right-radius:16px;
-      box-shadow:0 -10px 30px rgba(0,0,0,.18);padding:16px;transition:bottom .25s ease;z-index:50;max-width:820px;margin:0 auto
-    }
+    .bottomsheet{position:fixed;left:0;right:0;bottom:-100%;background:#fff;border-top-left-radius:16px;border-top-right-radius:16px;
+      box-shadow:0 -10px 30px rgba(0,0,0,.18);padding:16px;transition:bottom .25s ease;z-index:50;max-width:820px;margin:0 auto}
     .bottomsheet.show{bottom:0}
     .sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-    .sheet-title{font-weight:800}
+    .sheet-title{font-weight:900}
     .x{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer}
     .searchrow{display:flex;gap:8px;margin-top:8px}
-    .mode-tabs{display:flex;gap:6px;flex-wrap:wrap}
-    .tab{padding:8px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12px;cursor:pointer}
-    .tab.active{background:#1e40af;color:#fff;border-color:#1e40af}
     @media (max-width:480px){.sheetbox{grid-template-columns:1fr}}
 
-    /* NEW: 표 뷰 스타일 */
-    .table-view{
-      position:absolute;inset:0;overflow:auto;padding:16px;display:none;
-    }
-    .table-card{
-      background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 14px rgba(0,0,0,.06);
-    }
-    .table-title{
-      padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center
-    }
-    .table-grid{
-      display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--line)
-    }
-    .table-col{
-      border-right:1px solid var(--line);
-    }
+    /* 표 뷰 스타일 */
+    .table-view{position:absolute;inset:0;overflow:auto;padding:16px;display:none}
+    .table-card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 18px rgba(0,0,0,.07)}
+    .table-title{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+    .table-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--line)}
+    .table-col{border-right:1px solid var(--line)}
     .table-col:last-child{border-right:0}
-    .col-head{
-      background:#f8fafc;padding:10px 12px;font-weight:800;font-size:13px;position:sticky;top:0;z-index:1
-    }
-    .col-body{
-      padding:8px 12px;display:flex;flex-direction:column;gap:8px
-    }
-    .pill{
-      display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#fff
-    }
+    .col-head{background:#f8fafc;padding:10px 12px;font-weight:900;font-size:13px;position:sticky;top:0;z-index:1}
+    .col-body{padding:8px 12px;display:flex;flex-direction:column;gap:8px}
+    .pill{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:#fff}
     .pill .mbti{font-weight:900}
     .muted{color:#94a3b8;font-size:13px;padding:16px;text-align:center}
-    @media (max-width:700px){
-      .table-grid{grid-template-columns:1fr}
-      .col-head{position:relative}
-    }
+    @media (max-width:700px){.table-grid{grid-template-columns:1fr}.col-head{position:relative}}
   </style>
 </head>
 <body>
   <div class="app">
     <div class="header">
       <div class="title">🌟 MBTI 관계도</div>
-      <div class="mode-tabs" role="tablist" aria-label="배치 모드">
-        <button class="tab active" id="mode-circle">원형 배치</button>
-        <button class="tab" id="mode-grid">격자 배치</button>
-      </div>
     </div>
 
     <div class="controls">
@@ -151,9 +102,9 @@
             </select>
           </div>
           <div class="row">
-            <button id="btn-me" class="btn btn-primary">⭐ 내 기준 관계도 보기</button>
+            <button id="btn-me" class="btn btn-primary">🔗 MBTI 관계 보기</button>
           </div>
-          <div class="helper">* 내 MBTI를 선택하면 나와 팀원 간 ‘최고/도전적’ 궁합 수치를 바로 확인합니다.</div>
+          <div class="helper">* 내 MBTI를 선택하면 나와 팀원 간 ‘최고/도전적’ 궁합을 바로 확인합니다. (표 보기 전환)</div>
         </div>
 
         <div class="gridbox">
@@ -170,7 +121,6 @@
     <div class="viz-wrap">
       <svg id="wires" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0"></svg>
       <div id="stage" aria-live="polite"></div>
-      <!-- NEW: 표 표시 영역 -->
       <div id="tableView" class="table-view"></div>
     </div>
 
@@ -201,18 +151,11 @@
     const SHEET_URL = "https://script.google.com/macros/s/AKfycbxgPR8R0tD-eLfWV2tLcaI4SF9sCMh6tJhlYls4Yfzp84EbnoJEhJNShlmTHRqpTb-C/exec";
     const MAX_NODES = 30;
 
-    const mbtiEmojis = {
-      INTJ:"🧙", INTP:"🤖", ENTJ:"👑", ENTP:"💡",
-      INFJ:"🦄", INFP:"🧚", ENFJ:"⭐", ENFP:"🦋",
-      ISTJ:"📚", ISFJ:"🧸", ESTJ:"💼", ESFJ:"🤗",
-      ISTP:"🔧", ISFP:"🎨", ESTP:"🏃", ESFP:"🎉"
-    };
-    const mbtiColor = {
-      INTJ:"#667eea", INTP:"#f093fb", ENTJ:"#4facfe", ENTP:"#43e97b",
-      INFJ:"#fa709a", INFP:"#30cfd0", ENFJ:"#a8edea", ENFP:"#ff9a9e",
-      ISTJ:"#fbc2eb", ISFJ:"#fddb92", ESTJ:"#f6d365", ESFJ:"#fccb90",
-      ISTP:"#a1c4fd", ISFP:"#d4fc79", ESTP:"#84fab0", ESFP:"#fc5c7d"
-    };
+    const mbtiEmojis = { INTJ:"🧙", INTP:"🤖", ENTJ:"👑", ENTP:"💡", INFJ:"🦄", INFP:"🧚", ENFJ:"⭐", ENFP:"🦋",
+      ISTJ:"📚", ISFJ:"🧸", ESTJ:"💼", ESFJ:"🤗", ISTP:"🔧", ISFP:"🎨", ESTP:"🏃", ESFP:"🎉" };
+    const mbtiColor = { INTJ:"#667eea", INTP:"#f093fb", ENTJ:"#4facfe", ENTP:"#43e97b", INFJ:"#fa709a", INFP:"#30cfd0",
+      ENFJ:"#a8edea", ENFP:"#ff9a9e", ISTJ:"#fbc2eb", ISFJ:"#fddb92", ESTJ:"#f6d365", ESFJ:"#fccb90", ISTP:"#a1c4fd",
+      ISFP:"#d4fc79", ESTP:"#84fab0", ESFP:"#fc5c7d" };
 
     const comp = {
       INTJ:{excellent:["ENFP","ENTP"],good:["INFJ","INFP","ENFJ"],neutral:["INTJ","ENTJ","INTP","ESTP","ISTP","ISFP"],challenging:["ISFJ","ESFJ","ISTJ","ESFP","ESTJ"]},
@@ -236,8 +179,7 @@
     // ====== 상태 ======
     let raw = [];
     let people = [];
-    let me = null;
-    let layoutMode = "circle"; // circle | grid
+    let me = null; // 선택된 내 MBTI
 
     const el = s => document.querySelector(s);
     const els = s => document.querySelectorAll(s);
@@ -292,93 +234,69 @@
     // ====== 렌더링 ======
     const stage = el("#stage");
     const wires = el("#wires");
-    const tableView = el("#tableView"); /* NEW */
+    const tableView = el("#tableView");
 
     function render(){
-      // 레이어 초기화
+      // 원형 배치 제거: 기본은 그리드 노드 배치, 혹은 표 보기
       stage.innerHTML = ""; wires.innerHTML = ""; tableView.style.display="none";
       stage.style.display="block"; wires.style.display="block";
 
-      // 표 모드 조건: 격자 + me 선택
-      if(layoutMode==="grid" && me){
-        renderTable(); // NEW
+      // 표 모드: me 선택 시 표 우선 표출
+      if(me){
+        renderTable(); // 표 렌더링
         updateStats();
         return;
       }
 
       const data = filterPeople();
-      const all = me ? [me, ...data] : data;
+      const all = data;
       if(all.length===0){
         stage.innerHTML = `<div style="position:absolute;inset:0;display:grid;place-items:center;color:#94a3b8">표시할 데이터가 없습니다</div>`;
-        setStats("-", "-", me?0:0);
+        setStats("-", "-", 0);
         return;
       }
 
       const rect = stage.getBoundingClientRect();
-      const cx = rect.width/2, cy = rect.height/2;
+      const cols = Math.ceil(Math.sqrt(all.length));
+      const rows = Math.ceil(all.length/cols);
+      const pad = 16;
+      const cellW = (rect.width - pad*2)/cols;
+      const cellH = (rect.height - pad*2)/rows;
 
-      // 노드 좌표
+      // 노드 좌표 산출 및 렌더
       const nodes = [];
-      if(layoutMode==="circle"){
-        const R = Math.min(cx, cy) * (all.length>10?0.68:0.58);
-        all.forEach((p,i)=>{
-          const ang = (i/all.length)*Math.PI*2 - Math.PI/2;
-          const x = cx + R*Math.cos(ang);
-          const y = cy + R*Math.sin(ang);
-          nodes.push({p,x,y});
-        });
-      }else{ // grid (좌표 배치용 – me가 없을 때만)
-        const cols = Math.ceil(Math.sqrt(all.length));
-        const rows = Math.ceil(all.length/cols);
-        const pad = 16;
-        const cellW = (rect.width - pad*2)/cols;
-        const cellH = (rect.height - pad*2)/rows;
-        all.forEach((p,i)=>{
-          const r = Math.floor(i/cols);
-          const c = i%cols;
-          const x = pad + c*cellW + cellW/2;
-          const y = pad + r*cellH + cellH/2;
-          nodes.push({p,x,y});
-        });
-      }
+      all.forEach((p,i)=>{
+        const r = Math.floor(i/cols);
+        const c = i%cols;
+        const x = pad + c*cellW + cellW/2;
+        const y = pad + r*cellH + cellH/2;
+        nodes.push({p,x,y});
+      });
 
-      // 연결선
-      const lines = [];
-      if(me){
-        const meNode = nodes.find(n=>n.p.isMe);
-        nodes.forEach(n=>{
-          if(n===meNode) return;
-          lines.push(makeLine(meNode, n));
-        });
-      }else{
-        for(let i=0;i<nodes.length;i++){
-          for(let j=i+1;j<nodes.length;j++){
-            const L = makeLine(nodes[i], nodes[j]);
-            L.style.opacity = .15; lines.push(L);
-          }
+      // 전체 연결선(희미하게)
+      for(let i=0;i<nodes.length;i++){
+        for(let j=i+1;j<nodes.length;j++){
+          const L = makeLine(nodes[i], nodes[j]);
+          L.style.opacity = .15;
+          wires.appendChild(L);
         }
       }
-      lines.forEach(L=>wires.appendChild(L));
 
       // 노드
       nodes.forEach(n=>{
         const node = makeNode(n.p);
-        const size = n.p.isMe?30:24;
+        const size = 24;
         node.style.left = (n.x - size) + "px";
         node.style.top  = (n.y - size) + "px";
         stage.appendChild(node);
       });
     }
 
-    // NEW: 표 렌더링
+    // 표 렌더링
     function renderTable(){
       const data = filterPeople();
-      // me 제외
       const others = data.slice();
-      // 4 버킷
-      const buckets = {
-        excellent: [], good: [], neutral: [], challenging: []
-      };
+      const buckets = { excellent: [], good: [], neutral: [], challenging: [] };
       if(!me){
         tableView.innerHTML = `<div class="muted">표 보기는 ‘내 MBTI’를 선택하면 활성화됩니다.</div>`;
         tableView.style.display="block"; stage.style.display="none"; wires.style.display="none";
@@ -389,7 +307,6 @@
         buckets[level].push(p);
       }
 
-      // 정렬: MBTI -> 이름
       const sortFn = (a,b)=> (a.type.localeCompare(b.type) || (a.name||"").localeCompare(b.name||""));
       Object.values(buckets).forEach(arr=>arr.sort(sortFn));
 
@@ -408,7 +325,6 @@
         </div>
       `;
       tableView.style.display="block";
-      // 도표 레이어 숨김
       stage.style.display="none"; wires.style.display="none";
     }
 
@@ -439,7 +355,7 @@
       line.setAttribute("x1", a.x); line.setAttribute("y1", a.y);
       line.setAttribute("x2", b.x); line.setAttribute("y2", b.y);
       line.setAttribute("stroke", color);
-      line.setAttribute("stroke-width", me?3:2);
+      line.setAttribute("stroke-width", 2);
       line.setAttribute("data-t1", a.p.type);
       line.setAttribute("data-t2", b.p.type);
       return line;
@@ -457,70 +373,35 @@
       wrap.onpointerdown = e => e.stopPropagation();
 
       const circle = document.createElement("div");
-      circle.style.width = p.isMe?"60px":"50px";
-      circle.style.height = p.isMe?"60px":"50px";
-      circle.style.borderRadius = "50%";
-      circle.style.display = "grid";
-      circle.style.placeItems = "center";
-      circle.style.fontSize = p.isMe?"26px":"22px";
+      circle.style.width = "50px"; circle.style.height = "50px"; circle.style.borderRadius = "50%";
+      circle.style.display = "grid"; circle.style.placeItems = "center"; circle.style.fontSize = "22px";
       circle.style.background = `linear-gradient(135deg, ${mbtiColor[p.type]||"#ddd"}, ${(mbtiColor[p.type]||"#ddd")}dd)`;
-      circle.style.border = p.isMe ? "3px solid gold":"2px solid #fff";
-      circle.style.boxShadow = p.isMe ? "0 0 15px rgba(255,215,0,.5)":"0 4px 12px rgba(0,0,0,.12)";
-      if(p.isMe){ circle.style.animation = "pulse 2s infinite"; }
+      circle.style.border = "2px solid #fff";
+      circle.style.boxShadow = "0 4px 12px rgba(0,0,0,.12)";
       circle.textContent = mbtiEmojis[p.type]||"❓";
 
       const label = document.createElement("div");
-      label.textContent = p.type;
-      label.style.marginTop = "4px";
-      label.style.padding = "2px 8px";
-      label.style.borderRadius = "999px";
-      label.style.background = "#fff";
-      label.style.fontSize = "12px";
-      label.style.fontWeight = "800";
-      label.style.color = mbtiColor[p.type]||"#334155";
-      label.style.boxShadow = "0 2px 6px rgba(0,0,0,.08)";
+      label.textContent = p.type; label.style.marginTop = "4px"; label.style.padding = "2px 8px";
+      label.style.borderRadius = "999px"; label.style.background = "#fff"; label.style.fontSize = "12px";
+      label.style.fontWeight = "900"; label.style.color = mbtiColor[p.type]||"#334155"; label.style.boxShadow = "0 2px 6px rgba(0,0,0,.08)";
 
       const name = document.createElement("div");
-      name.textContent = p.name || (p.isMe?"나":"");
-      name.style.marginTop = "2px";
-      name.style.fontSize = "11px";
-      name.style.color = "#475569";
-      name.style.maxWidth = "84px";
-      name.style.whiteSpace = "nowrap";
-      name.style.overflow = "hidden";
-      name.style.textOverflow = "ellipsis";
+      name.textContent = p.name || ""; name.style.marginTop = "2px"; name.style.fontSize = "11px";
+      name.style.color = "#475569"; name.style.maxWidth = "84px"; name.style.whiteSpace = "nowrap";
+      name.style.overflow = "hidden"; name.style.textOverflow = "ellipsis";
 
-      wrap.appendChild(circle);
-      wrap.appendChild(label);
-      if(name.textContent) wrap.appendChild(name);
+      wrap.appendChild(circle); wrap.appendChild(label); if(name.textContent) wrap.appendChild(name);
 
-      wrap.addEventListener("click", ()=>{
-        highlight(p);
-        openSheet(p);
-      });
+      wrap.addEventListener("click", ()=>{ openSheet(p); });
       return wrap;
     }
 
     function getLevel(t1, t2){
-      const m = comp[t1];
-      if(!m) return "neutral";
+      const m = comp[t1]; if(!m) return "neutral";
       if(m.excellent.includes(t2)) return "excellent";
       if(m.good.includes(t2)) return "good";
       if(m.challenging.includes(t2)) return "challenging";
       return "neutral";
-    }
-
-    function highlight(target){
-      [...wires.querySelectorAll("line")].forEach(L=>{
-        const t1 = L.getAttribute("data-t1");
-        const t2 = L.getAttribute("data-t2");
-        const on = me
-          ? (target.isMe ? (t1===me.type || t2===me.type) :
-              ((t1===me.type && t2===target.type) || (t2===me.type && t1===target.type)))
-          : (t1===target.type || t2===target.type);
-        L.setAttribute("stroke-opacity", on?1:.15);
-        L.setAttribute("stroke-width", on?4: (me?3:2));
-      });
     }
 
     // ====== 상세 바텀시트 ======
@@ -529,7 +410,7 @@
       const title = el("#sheetTitle");
       const body = el("#sheetBody");
       title.textContent = `${mbtiEmojis[p.type]||"❓"} ${p.name || p.type}`;
-      if(me && !p.isMe){
+      if(me && p){
         const level = getLevel(me.type, p.type);
         const label = ({excellent:"💚 최고의 궁합",good:"💙 좋은 궁합",neutral:"💛 보통",challenging:"🧡 도전적"})[level];
         body.innerHTML = `
@@ -542,7 +423,7 @@
           <div style="display:grid;gap:6px;font-size:13px">
             <div>💚 <b>최고</b> : ${m.excellent.join(", ")||"-"}</div>
             <div>💙 <b>좋음</b> : ${m.good.join(", ")||"-"}</div>
-            <div>💛 <b>보통</b> : ${m.neutral.join(", ")||"-"}</div>
+            <div>💛 <b>보통</b> : ${m.neutral?.join?.(", ")||"-"}</div>
             <div>🧡 <b>도전적</b> : ${m.challenging.join(", ")||"-"}</div>
           </div>`;
       }
@@ -550,21 +431,17 @@
     }
     function relationTip(level){
       switch(level){
-        case "excellent": return "서로의 부족한 부분을 자연스럽게 채워주니 속도와 품질을 동시에 노리세요. 빠른 합의와 역할 분담이 잘 맞습니다.";
-        case "good": return "가벼운 브리핑과 정기 싱크로 충분합니다. 의사결정 기록만 남기면 실행력이 좋아집니다.";
-        case "neutral": return "용어·기준이 달라 생기는 오해를 먼저 줄이세요. 정의 정렬 → 일정 합의 순이 좋습니다.";
-        case "challenging": return "목표-기준-역할을 문서로 고정하세요. 감정 대신 데이터·산출물로 소통하면 성장의 발판이 됩니다.";
-        default: return "상대의 강점을 인정하고 공통 목표를 명료하게 두면 대부분 해결됩니다.";
+        case "excellent": return "서로의 부족한 부분을 채워줘요. 빠른 합의와 역할 분담으로 시너지가 납니다.";
+        case "good": return "정기 싱크와 간단한 기록만 잘해도 실행력이 좋아집니다.";
+        case "neutral": return "용어와 기준 정렬부터! 정의 정렬 → 일정 합의 순으로 오해를 줄이세요.";
+        case "challenging": return "목표-기준-역할을 문서로 고정하고 데이터로 소통하면 좋아요.";
+        default: return "상대의 강점을 인정하고 공통 목표를 명확히!";
       }
     }
     el("#sheetClose").addEventListener("click", ()=> sheetEl.classList.remove("show"));
     document.addEventListener("click",(e)=>{
       if(!e.target.closest("#sheet") && !e.target.closest(".node")){
         sheetEl.classList.remove("show");
-        [...wires.querySelectorAll("line")].forEach(L=>{
-          L.setAttribute("stroke-opacity", me?1:.15);
-          L.setAttribute("stroke-width", me?3:2);
-        });
       }
     });
 
@@ -576,9 +453,7 @@
         const ex = data.filter(p=>comp[me.type]?.excellent.includes(p.type)).length;
         const ch = data.filter(p=>comp[me.type]?.challenging.includes(p.type)).length;
         setStats(ex, ch, total);
-      }else{
-        setStats("-", "-", total);
-      }
+      }else{ setStats("-", "-", total); }
     }
     function setStats(ex, ch, total){
       el("#excellentCount").textContent = ex;
@@ -589,9 +464,7 @@
     // ====== 이벤트 ======
     el("#btn-load").addEventListener("click", loadData);
     el("#btn-reset").addEventListener("click", ()=>{
-      el("#q").value = "";
-      el("#filterMbti").value = "";
-      me=null; render(); updateStats();
+      el("#q").value = ""; el("#filterMbti").value = ""; me=null; render(); updateStats();
     });
     el("#btn-me").addEventListener("click", ()=>{
       const name = normalizeName(el("#myName").value);
@@ -603,23 +476,9 @@
     el("#q").addEventListener("input", ()=>{ render(); updateStats(); });
     el("#filterMbti").addEventListener("change", ()=>{ render(); updateStats(); });
 
-    // 배치 전환
-    el("#mode-circle").addEventListener("click", ()=>{
-      layoutMode="circle";
-      el("#mode-circle").classList.add("active");
-      el("#mode-grid").classList.remove("active");
-      render();
-    });
-    el("#mode-grid").addEventListener("click", ()=>{
-      layoutMode="grid";
-      el("#mode-grid").classList.add("active");
-      el("#mode-circle").classList.remove("active");
-      render();
-    });
-
     // 반응형
     let ro = new ResizeObserver(()=> render());
-    ro.observe(el(".viz-wrap"));
+    ro.observe(document.querySelector('.viz-wrap'));
 
     // 초기
     window.addEventListener("load", loadData);
