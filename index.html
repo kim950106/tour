@@ -334,4 +334,48 @@
         const html = [
           renderSection('좋음', '시너지가 높은 유형', 'sec-good', groups.good),
           renderSection('보통', '상황에 따라 다른 유형', 'sec-normal', groups.normal),
-          renderSect
+          renderSection('노력 필요', '의사소통 주의 필요한 유형', 'sec-effort', groups.effort),
+        ].join('');
+
+        content.innerHTML = html;
+
+        // MBTI 칩 클릭 → 이름 팝업
+        content.querySelectorAll('.chip').forEach(chip => {
+          chip.addEventListener('click', () => {
+            const namesStr = decodeURIComponent(chip.dataset.names || '');
+            if (!namesStr){
+              alert('해당 MBTI 인원을 찾을 수 없습니다.');
+              return;
+            }
+            alert('해당 MBTI 인원:\n\n' + namesStr);
+          });
+        });
+      }
+
+      // 🔥 버튼 클릭 시 Apps Script API 호출
+      btnRun.addEventListener('click', async () => {
+        const name = nameInput.value.trim();
+        const mbti = mbtiInput.value.trim();
+
+        targetInfo.textContent = '관계도를 불러오는 중입니다...';
+
+        try{
+          const url = API_URL
+            + '?name=' + encodeURIComponent(name)
+            + '&mbti=' + encodeURIComponent(mbti);
+
+          const res = await fetch(url);
+          if(!res.ok){
+            throw new Error('HTTP ' + res.status);
+          }
+          const data = await res.json();
+          renderRelations(data);
+        }catch(err){
+          console.error(err);
+          targetInfo.textContent = '오류가 발생했습니다.';
+          content.innerHTML = '<div class="empty">서버 오류가 발생했습니다.</div>';
+        }
+      });
+    </script>
+  </body>
+</html>
