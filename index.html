@@ -263,6 +263,9 @@
     </div>
 
     <script>
+      // ✅ Apps Script 웹앱 URL (exec 주소 그대로 복붙)
+      const API_URL = "https://script.google.com/macros/s/AKfycbxgPR8R0tD-eLfWV2tLcaI4SF9sCMh6tJhlYls4Yfzp84EbnoJEhJNShlmTHRqpTb-C/exec";
+
       // 🔥 돌아가기 아이콘 → 링크 이동
       document.getElementById("btnBack").addEventListener("click", () => {
         window.location.href = "https://kim950106.github.io/travel-recommendation/";
@@ -277,4 +280,58 @@
       function renderRelations(data){
         if (data.error){
           targetInfo.textContent = data.error;
-          content.innerHTML = '<div class="empt
+          content.innerHTML = '<div class="empty">'+ data.error +'</div>';
+          return;
+        }
+
+        targetInfo.textContent =
+          (data.targetName ? data.targetName + ' / ' : '') +
+          'MBTI: ' + data.targetMbti + ' 기준 관계도';
+
+        const groups = data.groups || {good:[], normal:[], effort:[]};
+
+        function renderSection(title, sub, cssClass, items){
+          if (!items || items.length === 0){
+            return `
+              <section class="section ${cssClass}">
+                <div class="sec-title">${title}</div>
+                <div class="sec-sub">${sub}</div>
+                <div class="empty">해당되는 MBTI가 없습니다.</div>
+              </section>
+            `;
+          }
+
+          const rows = items.map(item => {
+            const names = item.names || [];
+            const chipLabel = item.mbti;
+            const count = names.length;
+            const namesStr = names.join(', ');
+            const dataNames = encodeURIComponent(namesStr);
+
+            return `
+              <div class="mbti-row">
+                <div class="mbti-label">${chipLabel}</div>
+                <div class="chip-wrap">
+                  <button class="chip"
+                          data-names="${dataNames}">
+                    ${chipLabel}
+                    <span class="count">${count}명</span>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          return `
+            <section class="section ${cssClass}">
+              <div class="sec-title">${title}</div>
+              <div class="sec-sub">${sub}</div>
+              ${rows}
+            </section>
+          `;
+        }
+
+        const html = [
+          renderSection('좋음', '시너지가 높은 유형', 'sec-good', groups.good),
+          renderSection('보통', '상황에 따라 다른 유형', 'sec-normal', groups.normal),
+          renderSect
