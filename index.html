@@ -10,8 +10,10 @@
 
     <style>
       :root {
-        --brand:#2563eb;
-        --brand-dark:#1d4ed8;
+        /* 🔹 포인트 컬러 (이미지 색 계열) */
+        --brand:#00d1c4;
+        --brand-dark:#00b3a8;
+
         --bg:#0f172a;
         --panel:#ffffff;
         --line:#e5e7eb;
@@ -53,7 +55,7 @@
         width:42px;
         height:42px;
         border-radius:50%;
-        background:rgba(15,23,42,0.85);
+        background:rgba(15,23,42,0.9);
         backdrop-filter:blur(4px);
         color:#fff;
         font-size:22px;
@@ -73,7 +75,7 @@
         position:sticky;
         top:0;
         z-index:10;
-        background:linear-gradient(135deg,#1d4ed8,#38bdf8);
+        background:linear-gradient(135deg,var(--brand-dark),var(--brand));
         color:#fff;
         padding:12px 10px 10px;
       }
@@ -105,7 +107,7 @@
         width:100%;
         border:0;
         border-radius:10px;
-        background:#f97316;
+        background:var(--brand);
         color:#fff;
         font-weight:700;
         padding:9px 0;
@@ -113,7 +115,7 @@
         cursor:pointer;
       }
       .btn-main:active{
-        background:#ea580c;
+        background:var(--brand-dark);
       }
 
       .top-target{
@@ -162,11 +164,11 @@
         min-width:48px;
         padding:6px 6px;
         border-radius:999px;
-        background:#eff6ff;
+        background:#e0fffb;
         text-align:center;
         font-size:11px;
         font-weight:800;
-        color:#1d4ed8;
+        color:var(--brand-dark);
       }
       .chip-wrap{
         display:flex;
@@ -267,7 +269,7 @@
       console.log("MBTI 페이지 스크립트 시작");
 
       // ✅ Apps Script 웹앱 URL (exec 주소)
-      const API_URL = "https://script.google.com/macros/s/AKfycbw0vXlKjlj-vu-Epq8PqrG331dxWOLIfPPu71f16pE8vRwNEmbkZE35Ka7LM85kvjEi/exec;
+      const API_URL = "https://script.google.com/macros/s/AKfycbw0vXlKjlj-vu-Epq8PqrG331dxWOLIfPPu71f16pE8vRwNEmbkZE35Ka7LM85kvjEi/exec";
 
       // DOM 요소 참조
       const btnBack = document.getElementById("btnBack");
@@ -276,10 +278,6 @@
       const mbtiInput = document.getElementById('mbtiInput');
       const targetInfo = document.getElementById('targetInfo');
       const content = document.getElementById('content');
-
-      if(!btnBack || !btnRun || !nameInput || !mbtiInput){
-        console.error("필수 DOM 요소를 찾지 못했습니다.");
-      }
 
       // 🔙 돌아가기 아이콘 → 링크 이동
       btnBack.addEventListener("click", () => {
@@ -317,7 +315,8 @@
             .map((m,idx) => ({
               id: m.id ?? (idx+1),
               name: m.name || m.이름 || "",
-              mbti: (m.mbti || m.MBTI || "").toUpperCase()
+              // 백엔드가 {name, type} 구조이므로 type도 MBTI 후보에 포함
+              mbti: (m.mbti || m.MBTI || m.type || "").toUpperCase()
             }))
             .filter(m => m.name && m.mbti);
 
@@ -468,9 +467,16 @@
           if(!res.ok){
             throw new Error('HTTP ' + res.status);
           }
-          const data = await res.json();
-          console.log('API 응답:', data);
-          renderRelations(data);
+
+          const raw = await res.json();
+          console.log('API 응답(raw):', raw);
+
+          // 백엔드가 배열([ {name,type}, ... ])을 보내면 members로 래핑
+          const dataForRender = Array.isArray(raw)
+            ? { members: raw }
+            : raw;
+
+          renderRelations(dataForRender);
         }catch(err){
           console.error("fetch 에러:", err);
           targetInfo.textContent = '오류가 발생했습니다.';
