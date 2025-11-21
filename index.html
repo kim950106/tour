@@ -1,204 +1,482 @@
-<script>
-  // ✅ Apps Script 웹앱 URL (exec 주소)
-  const API_URL = "https://script.google.com/macros/s/AKfycbxgPR8R0tD-eLfWV2tLcaI4SF9sCMh6tJhlYls4Yfzp84EbnoJEhJNShlmTHRqpTb-C/exec";
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>MBTI 관계도</title>
 
-  // 🔙 돌아가기 아이콘 → 링크 이동
-  document.getElementById("btnBack").addEventListener("click", () => {
-    window.location.href = "https://kim950106.github.io/travel-recommendation/";
-  });
-
-  const btnRun = document.getElementById('btnRun');
-  const nameInput = document.getElementById('nameInput');
-  const mbtiInput = document.getElementById('mbtiInput');
-  const targetInfo = document.getElementById('targetInfo');
-  const content = document.getElementById('content');
-
-  // JS 쪽에서도 MBTI 궁합 계산 함수 하나 가지고 있게
-  function jsRelationLevel(target, other){
-    if(!target || !other) return "normal";
-    const a = String(target).toUpperCase();
-    const b = String(other).toUpperCase();
-    if(a.length !== 4 || b.length !== 4) return "normal";
-    if(a === b) return "good";
-    let score = 0;
-    if(a[1] === b[1]) score++;
-    if(a[2] === b[2]) score++;
-    if(a[3] === b[3]) score++;
-    if(score >= 2) return "good";
-    if(score === 1) return "normal";
-    return "effort";
-  }
-
-  // 🔧 어떤 형태의 JSON이 와도 {targetName, targetMbti, groups} 로 맞춰주는 정규화
-  function normalizeData(raw, fallbackName, fallbackMbti){
-    // 1) 기본 값
-    let targetName = raw.targetName || fallbackName || "";
-    let targetMbti = (raw.targetMbti || fallbackMbti || "").toUpperCase();
-    let groups = raw.groups;
-
-    // 2) groups 없고, members 배열만 온 경우 → 여기서 직접 그룹 계산
-    if(!groups && Array.isArray(raw.members)){
-      const members = raw.members
-        .map((m,idx) => ({
-          id: m.id ?? (idx+1),
-          name: m.name || m.이름 || "",
-          mbti: (m.mbti || m.MBTI || "").toUpperCase()
-        }))
-        .filter(m => m.name && m.mbti);
-
-      // 타겟 MBTI가 없고, 이름은 있는 경우 → 시트에서 찾아서 설정
-      if(!targetMbti && targetName){
-        const found = members.find(m => m.name === targetName);
-        if(found) targetMbti = found.mbti;
-      }
-      // 둘 다 없으면 그냥 첫 사람 MBTI를 기준으로라도 보여주기
-      if(!targetMbti && members.length > 0){
-        targetMbti = members[0].mbti;
+    <style>
+      :root {
+        --brand:#2563eb;
+        --brand-dark:#1d4ed8;
+        --bg:#0f172a;
+        --panel:#ffffff;
+        --line:#e5e7eb;
+        --good:#16a34a;
+        --normal:#f59e0b;
+        --effort:#ef4444;
       }
 
-      const map = {good:{}, normal:{}, effort:{}};
+      *{
+        box-sizing:border-box;
+        margin:0;padding:0;
+        -webkit-tap-highlight-color:transparent;
+      }
+      body{
+        font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+        background:var(--bg);
+        color:#0f172a;
+        min-height:100vh;
+        padding:8px;
+      }
 
-      members.forEach(m => {
-        const level = jsRelationLevel(targetMbti, m.mbti);
-        const bucket = map[level];
-        if(!bucket[m.mbti]) bucket[m.mbti] = [];
-        bucket[m.mbti].push(m.name);
+      .app{
+        max-width:480px;
+        margin:0 auto;
+        background:var(--panel);
+        border-radius:16px;
+        overflow:hidden;
+        display:flex;
+        flex-direction:column;
+        min-height:calc(100vh - 16px);
+        box-shadow:0 14px 40px rgba(0,0,0,.35);
+      }
+
+      /* 🔥 돌아가기 아이콘 (Floating Button) */
+      .btn-floating-back{
+        position:fixed;
+        top:14px;
+        left:14px;
+        width:42px;
+        height:42px;
+        border-radius:50%;
+        background:rgba(15,23,42,0.85);
+        backdrop-filter:blur(4px);
+        color:#fff;
+        font-size:22px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        cursor:pointer;
+        z-index:9999;
+        border:1px solid rgba(255,255,255,.15);
+        box-shadow:0 5px 14px rgba(0,0,0,.35);
+      }
+      .btn-floating-back:active{
+        background:rgba(15,23,42,1);
+      }
+
+      .top{
+        position:sticky;
+        top:0;
+        z-index:10;
+        background:linear-gradient(135deg,#1d4ed8,#38bdf8);
+        color:#fff;
+        padding:12px 10px 10px;
+      }
+      .top-title{
+        font-weight:800;
+        font-size:16px;
+        text-align:center;
+        margin-bottom:8px;
+      }
+
+      .top-row{
+        display:flex;
+        gap:6px;
+        margin-bottom:6px;
+      }
+      .top-row input,
+      .top-row select{
+        flex:1;
+        border-radius:10px;
+        border:0;
+        padding:8px 9px;
+        font-size:13px;
+      }
+      .top-row input::placeholder{
+        color:#9ca3af;
+      }
+
+      .btn-main{
+        width:100%;
+        border:0;
+        border-radius:10px;
+        background:#f97316;
+        color:#fff;
+        font-weight:700;
+        padding:9px 0;
+        font-size:14px;
+        cursor:pointer;
+      }
+      .btn-main:active{
+        background:#ea580c;
+      }
+
+      .top-target{
+        margin-top:6px;
+        font-size:12px;
+        text-align:center;
+        opacity:.9;
+      }
+
+      .content{
+        flex:1;
+        overflow:auto;
+        padding:10px;
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+      }
+
+      .section{
+        border-radius:12px;
+        padding:8px 9px;
+      }
+      .sec-title{
+        font-weight:800;
+        margin-bottom:4px;
+        font-size:13px;
+      }
+      .sec-sub{
+        font-size:11px;
+        opacity:.7;
+        margin-bottom:6px;
+      }
+
+      .sec-good{background:#ecfdf3;border:1px solid #bbf7d0;}
+      .sec-normal{background:#fff7ed;border:1px solid #fed7aa;}
+      .sec-effort{background:#fef2f2;border:1px solid #fecaca;}
+
+      .mbti-row{
+        display:flex;
+        align-items:flex-start;
+        gap:6px;
+        margin-bottom:4px;
+        flex-wrap:wrap;
+      }
+      .mbti-label{
+        min-width:48px;
+        padding:6px 6px;
+        border-radius:999px;
+        background:#eff6ff;
+        text-align:center;
+        font-size:11px;
+        font-weight:800;
+        color:#1d4ed8;
+      }
+      .chip-wrap{
+        display:flex;
+        flex-wrap:wrap;
+        gap:4px;
+      }
+      .chip{
+        font-size:11px;
+        padding:5px 8px;
+        border-radius:999px;
+        border:1px solid var(--line);
+        background:#fff;
+        cursor:pointer;
+      }
+      .chip span.count{
+        font-size:10px;
+        opacity:.7;
+        margin-left:4px;
+      }
+
+      .empty{
+        font-size:12px;
+        text-align:center;
+        padding:12px 4px;
+        color:#9ca3af;
+      }
+
+      .bottom{
+        position:sticky;
+        bottom:0;
+        background:#0f172a;
+        color:#e5e7eb;
+        padding:8px 10px;
+        font-size:11px;
+      }
+      .bottom-title{
+        font-weight:700;
+        margin-bottom:4px;
+      }
+      .bottom-ul{
+        list-style:none;
+      }
+      .bottom-ul li{
+        margin-bottom:2px;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <!-- 🔥 돌아가기 버튼 (고정 아이콘) -->
+    <div id="btnBack" class="btn-floating-back">←</div>
+
+    <div class="app">
+      <!-- 상단 고정 -->
+      <header class="top">
+        <div class="top-title">우수사례 참가자 MBTI 관계도</div>
+
+        <div class="top-row">
+          <input id="nameInput" type="text" placeholder="이름 (예: 김현철)" />
+          <select id="mbtiInput">
+            <option value="">MBTI 선택</option>
+            <option>INTJ</option><option>INTP</option><option>ENTJ</option><option>ENTP</option>
+            <option>INFJ</option><option>INFP</option><option>ENFJ</option><option>ENFP</option>
+            <option>ISTJ</option><option>ISFJ</option><option>ESTJ</option><option>ESFJ</option>
+            <option>ISTP</option><option>ISFP</option><option>ESTP</option><option>ESFP</option>
+          </select>
+        </div>
+
+        <button id="btnRun" class="btn-main">관계도 보기</button>
+
+        <div id="targetInfo" class="top-target">
+          이름과 MBTI를 입력하고 관계도를 확인해 보세요.
+        </div>
+      </header>
+
+      <!-- 중간 스크롤 -->
+      <main class="content" id="content">
+        <div class="empty">
+          아직 데이터가 없습니다.<br />
+          상단에서 이름 / MBTI를 입력한 뒤 ‘관계도 보기’를 눌러 주세요.
+        </div>
+      </main>
+
+      <!-- 하단 고정 -->
+      <footer class="bottom">
+        <div class="bottom-title">관계도 정의</div>
+        <ul class="bottom-ul">
+          <li>• <span style="color:#4ade80;">좋음</span> : 협업 시 시너지 높음</li>
+          <li>• <span style="color:#fb923c;">보통</span> : 조율에 따라 협업 가능</li>
+          <li>• <span style="color:#fca5a5;">노력 필요</span> : 소통·배려 필요</li>
+        </ul>
+      </footer>
+    </div>
+
+    <!-- ✅ 스크립트는 body 맨 마지막에! -->
+    <script>
+      console.log("MBTI 페이지 스크립트 시작");
+
+      // ✅ Apps Script 웹앱 URL (exec 주소)
+      const API_URL = "https://script.google.com/macros/s/AKfycbxgPR8R0tD-eLfWV2tLcaI4SF9sCMh6tJhlYls4Yfzp84EbnoJEhJNShlmTHRqpTb-C/exec";
+
+      // DOM 요소 참조
+      const btnBack = document.getElementById("btnBack");
+      const btnRun = document.getElementById('btnRun');
+      const nameInput = document.getElementById('nameInput');
+      const mbtiInput = document.getElementById('mbtiInput');
+      const targetInfo = document.getElementById('targetInfo');
+      const content = document.getElementById('content');
+
+      if(!btnBack || !btnRun || !nameInput || !mbtiInput){
+        console.error("필수 DOM 요소를 찾지 못했습니다.");
+      }
+
+      // 🔙 돌아가기 아이콘 → 링크 이동
+      btnBack.addEventListener("click", () => {
+        window.location.href = "https://kim950106.github.io/travel-recommendation/";
       });
 
-      const toArr = obj => Object.keys(obj).sort().map(mbti => ({
-        mbti,
-        names: obj[mbti]
-      }));
-
-      groups = {
-        good: toArr(map.good),
-        normal: toArr(map.normal),
-        effort: toArr(map.effort)
-      };
-    }
-
-    // 3) 그래도 groups가 없으면 빈 틀이라도
-    if(!groups){
-      groups = {good:[], normal:[], effort:[]};
-    }
-
-    return {
-      targetName,
-      targetMbti,
-      groups
-    };
-  }
-
-  function renderRelations(rawData){
-    const data = normalizeData(
-      rawData,
-      nameInput.value.trim(),
-      mbtiInput.value.trim()
-    );
-
-    if (rawData.error && !data.targetMbti){
-      targetInfo.textContent = rawData.error;
-      content.innerHTML = '<div class="empty">'+ rawData.error +'</div>';
-      return;
-    }
-
-    if(!data.targetMbti){
-      targetInfo.textContent = 'MBTI를 알 수 없습니다. 이름 또는 MBTI를 확인해 주세요.';
-      content.innerHTML = '<div class="empty">MBTI 정보가 없어 관계도를 만들 수 없습니다.</div>';
-      return;
-    }
-
-    targetInfo.textContent =
-      (data.targetName ? data.targetName + ' / ' : '') +
-      'MBTI: ' + data.targetMbti + ' 기준 관계도';
-
-    const groups = data.groups || {good:[], normal:[], effort:[]};
-
-    function renderSection(title, sub, cssClass, items){
-      if (!items || items.length === 0){
-        return `
-          <section class="section ${cssClass}">
-            <div class="sec-title">${title}</div>
-            <div class="sec-sub">${sub}</div>
-            <div class="empty">해당되는 MBTI가 없습니다.</div>
-          </section>
-        `;
+      // JS 쪽에서도 MBTI 궁합 계산 함수 하나 가지고 있게
+      function jsRelationLevel(target, other){
+        if(!target || !other) return "normal";
+        const a = String(target).toUpperCase();
+        const b = String(other).toUpperCase();
+        if(a.length !== 4 || b.length !== 4) return "normal";
+        if(a === b) return "good";
+        let score = 0;
+        if(a[1] === b[1]) score++;
+        if(a[2] === b[2]) score++;
+        if(a[3] === b[3]) score++;
+        if(score >= 2) return "good";
+        if(score === 1) return "normal";
+        return "effort";
       }
 
-      const rows = items.map(item => {
-        const names = item.names || [];
-        const chipLabel = item.mbti;
-        const count = names.length;
-        const namesStr = names.join(', ');
-        const dataNames = encodeURIComponent(namesStr);
+      // 🔧 어떤 형태의 JSON이 와도 {targetName, targetMbti, groups} 로 맞춰주는 정규화
+      function normalizeData(raw, fallbackName, fallbackMbti){
+        console.log("원본 응답 데이터:", raw);
 
-        return `
-          <div class="mbti-row">
-            <div class="mbti-label">${chipLabel}</div>
-            <div class="chip-wrap">
-              <button class="chip"
-                      data-names="${dataNames}">
-                ${chipLabel}
-                <span class="count">${count}명</span>
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
+        // 1) 기본 값
+        let targetName = raw.targetName || fallbackName || "";
+        let targetMbti = (raw.targetMbti || fallbackMbti || "").toUpperCase();
+        let groups = raw.groups;
 
-      return `
-        <section class="section ${cssClass}">
-          <div class="sec-title">${title}</div>
-          <div class="sec-sub">${sub}</div>
-          ${rows}
-        </section>
-      `;
-    }
+        // 2) groups 없고, members 배열만 온 경우 → 여기서 직접 그룹 계산
+        if(!groups && Array.isArray(raw.members)){
+          const members = raw.members
+            .map((m,idx) => ({
+              id: m.id ?? (idx+1),
+              name: m.name || m.이름 || "",
+              mbti: (m.mbti || m.MBTI || "").toUpperCase()
+            }))
+            .filter(m => m.name && m.mbti);
 
-    const html = [
-      renderSection('좋음', '시너지가 높은 유형', 'sec-good', groups.good),
-      renderSection('보통', '상황에 따라 다른 유형', 'sec-normal', groups.normal),
-      renderSection('노력 필요', '의사소통 주의 필요한 유형', 'sec-effort', groups.effort),
-    ].join('');
+          if(!targetMbti && targetName){
+            const found = members.find(m => m.name === targetName);
+            if(found) targetMbti = found.mbti;
+          }
+          if(!targetMbti && members.length > 0){
+            targetMbti = members[0].mbti;
+          }
 
-    content.innerHTML = html;
+          const map = {good:{}, normal:{}, effort:{}};
 
-    // MBTI 칩 클릭 → 이름 팝업
-    content.querySelectorAll('.chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        const namesStr = decodeURIComponent(chip.dataset.names || '');
-        if (!namesStr){
-          alert('해당 MBTI 인원을 찾을 수 없습니다.');
+          members.forEach(m => {
+            const level = jsRelationLevel(targetMbti, m.mbti);
+            const bucket = map[level];
+            if(!bucket[m.mbti]) bucket[m.mbti] = [];
+            bucket[m.mbti].push(m.name);
+          });
+
+          const toArr = obj => Object.keys(obj).sort().map(mbti => ({
+            mbti,
+            names: obj[mbti]
+          }));
+
+          groups = {
+            good: toArr(map.good),
+            normal: toArr(map.normal),
+            effort: toArr(map.effort)
+          };
+        }
+
+        if(!groups){
+          groups = {good:[], normal:[], effort:[]};
+        }
+
+        return {
+          targetName,
+          targetMbti,
+          groups
+        };
+      }
+
+      function renderRelations(rawData){
+        const data = normalizeData(
+          rawData,
+          nameInput.value.trim(),
+          mbtiInput.value.trim()
+        );
+
+        if (rawData.error && !data.targetMbti){
+          targetInfo.textContent = rawData.error;
+          content.innerHTML = '<div class="empty">'+ rawData.error +'</div>';
           return;
         }
-        alert('해당 MBTI 인원:\n\n' + namesStr);
-      });
-    });
-  }
 
-  // 🔥 버튼 클릭 시 Apps Script API 호출
-  btnRun.addEventListener('click', async () => {
-    const name = nameInput.value.trim();
-    const mbti = mbtiInput.value.trim();
+        if(!data.targetMbti){
+          targetInfo.textContent = 'MBTI를 알 수 없습니다. 이름 또는 MBTI를 확인해 주세요.';
+          content.innerHTML = '<div class="empty">MBTI 정보가 없어 관계도를 만들 수 없습니다.</div>';
+          return;
+        }
 
-    targetInfo.textContent = '관계도를 불러오는 중입니다...';
+        targetInfo.textContent =
+          (data.targetName ? data.targetName + ' / ' : '') +
+          'MBTI: ' + data.targetMbti + ' 기준 관계도';
 
-    try{
-      const url = API_URL
-        + '?name=' + encodeURIComponent(name)
-        + '&mbti=' + encodeURIComponent(mbti);
+        const groups = data.groups || {good:[], normal:[], effort:[]};
 
-      const res = await fetch(url);
-      if(!res.ok){
-        throw new Error('HTTP ' + res.status);
+        function renderSection(title, sub, cssClass, items){
+          if (!items || items.length === 0){
+            return `
+              <section class="section ${cssClass}">
+                <div class="sec-title">${title}</div>
+                <div class="sec-sub">${sub}</div>
+                <div class="empty">해당되는 MBTI가 없습니다.</div>
+              </section>
+            `;
+          }
+
+          const rows = items.map(item => {
+            const names = item.names || [];
+            const chipLabel = item.mbti;
+            const count = names.length;
+            const namesStr = names.join(', ');
+            const dataNames = encodeURIComponent(namesStr);
+
+            return `
+              <div class="mbti-row">
+                <div class="mbti-label">${chipLabel}</div>
+                <div class="chip-wrap">
+                  <button class="chip"
+                          data-names="${dataNames}">
+                    ${chipLabel}
+                    <span class="count">${count}명</span>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          return `
+            <section class="section ${cssClass}">
+              <div class="sec-title">${title}</div>
+              <div class="sec-sub">${sub}</div>
+              ${rows}
+            </section>
+          `;
+        }
+
+        const html = [
+          renderSection('좋음', '시너지가 높은 유형', 'sec-good', groups.good),
+          renderSection('보통', '상황에 따라 다른 유형', 'sec-normal', groups.normal),
+          renderSection('노력 필요', '의사소통 주의 필요한 유형', 'sec-effort', groups.effort),
+        ].join('');
+
+        content.innerHTML = html;
+
+        // MBTI 칩 클릭 → 이름 팝업
+        content.querySelectorAll('.chip').forEach(chip => {
+          chip.addEventListener('click', () => {
+            const namesStr = decodeURIComponent(chip.dataset.names || '');
+            if (!namesStr){
+              alert('해당 MBTI 인원을 찾을 수 없습니다.');
+              return;
+            }
+            alert('해당 MBTI 인원:\n\n' + namesStr);
+          });
+        });
       }
-      const data = await res.json();
-      console.log('API 응답:', data);
-      renderRelations(data);
-    }catch(err){
-      console.error(err);
-      targetInfo.textContent = '오류가 발생했습니다.';
-      content.innerHTML = '<div class="empty">서버 오류가 발생했습니다.</div>';
-    }
-  });
-</script>
+
+      // 🔥 버튼 클릭 시 Apps Script API 호출
+      btnRun.addEventListener('click', async () => {
+        const name = nameInput.value.trim();
+        const mbti = mbtiInput.value.trim();
+
+        targetInfo.textContent = '관계도를 불러오는 중입니다...';
+
+        try{
+          const url = API_URL
+            + '?name=' + encodeURIComponent(name)
+            + '&mbti=' + encodeURIComponent(mbti);
+
+          console.log("요청 URL:", url);
+
+          const res = await fetch(url);
+          console.log("HTTP 상태:", res.status);
+
+          if(!res.ok){
+            throw new Error('HTTP ' + res.status);
+          }
+          const data = await res.json();
+          console.log('API 응답:', data);
+          renderRelations(data);
+        }catch(err){
+          console.error("fetch 에러:", err);
+          targetInfo.textContent = '오류가 발생했습니다.';
+          content.innerHTML = '<div class="empty">서버 오류가 발생했습니다.</div>';
+        }
+      });
+    </script>
+  </body>
+</html>
