@@ -1,204 +1,280 @@
-<script>
-  // ✅ 웹앱 URL
-  const SHEET_URL = "https://script.google.com/macros/s/AKfycbxgPR8R0tD-eLfWV2tLcaI4SF9sCMh6tJhlYls4Yfzp84EbnoJEhJNShlmTHRqpTb-C/exec";
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>MBTI 관계도</title>
 
-  const state = {
-    members: [],
-    relations: [],
-    mode: "graph", // graph | list
-  };
-
-  const elStage = document.getElementById("stage");
-  const elListView = document.getElementById("listView");
-  const elRelationList = document.getElementById("relationList");
-  const elBtnLoad = document.getElementById("btn-load");
-  const elBtnReset = document.getElementById("btn-reset");
-  const elBtnListClose = document.getElementById("btnListClose");
-  const elQ = document.getElementById("q");
-  const elFilterMbti = document.getElementById("filterMbti");
-  const elStatTotal = document.getElementById("statTotal");
-  const elStatOk = document.getElementById("statOk");
-  const elStatWarn = document.getElementById("statWarn");
-  const elBtnModeGraph = document.getElementById("btnModeGraph");
-  const elBtnModeList = document.getElementById("btnModeList");
-
-  function setMode(mode){
-    state.mode = mode;
-    if(mode === "graph"){
-      elStage.style.display = "block";
-      elListView.classList.remove("show");
-      elBtnModeGraph.classList.add("active");
-      elBtnModeList.classList.remove("active");
-    }else{
-      elStage.style.display = "none";
-      elListView.classList.add("show");
-      elBtnModeGraph.classList.remove("active");
-      elBtnModeList.classList.add("active");
-    }
-  }
-
-  elBtnModeGraph.addEventListener("click", ()=> setMode("graph"));
-  elBtnModeList.addEventListener("click", ()=> setMode("list"));
-  elBtnListClose.addEventListener("click", ()=> setMode("graph"));
-
-  // ✅ MBTI 궁합 간단 규칙
-  function getRelationLevel(m1, m2){
-    const a = (m1.mbti || "").toUpperCase();
-    const b = (m2.mbti || "").toUpperCase();
-    if(a.length !== 4 || b.length !== 4) return "warn";
-
-    if(a === b) return "ok"; // 같은 유형은 친밀감 높음
-
-    let score = 0;
-    if(a[1] === b[1]) score++; // N/S
-    if(a[2] === b[2]) score++; // F/T
-    if(a[3] === b[3]) score++; // J/P
-
-    if(score >= 2) return "ok";   // 비슷한 성향 많음
-    if(score === 1) return "warn";
-    return "bad";
-  }
-
-  function buildRelationsFromMbti(){
-    const members = state.members;
-    const rels = [];
-    for(let i=0;i<members.length;i++){
-      for(let j=i+1;j<members.length;j++){
-        const level = getRelationLevel(members[i], members[j]);
-        rels.push({from: members[i].id, to: members[j].id, level});
-      }
-    }
-    state.relations = rels;
-  }
-
-  // ✅ 웹앱에서 실제 데이터 가져오기
-  elBtnLoad.addEventListener("click", async () => {
-    try{
-      const res = await fetch(SHEET_URL, {
-        method: "GET",
-        mode: "cors",
-      });
-      if(!res.ok){
-        throw new Error("응답 코드: " + res.status);
-      }
-      const json = await res.json();
-      console.log("웹앱 응답:", json);
-
-      let members = [];
-
-      // { members:[{name, mbti}, ...] } 구조라고 가정
-      if(Array.isArray(json.members)){
-        members = json.members;
-      }else if(Array.isArray(json)){
-        // 혹시 그냥 배열만 내려주면
-        members = json;
+    <style>
+      :root {
+        --brand:#2563eb;
+        --brand-dark:#1d4ed8;
+        --bg:#0f172a;
+        --panel:#ffffff;
+        --line:#e5e7eb;
+        --good:#16a34a;
+        --normal:#f59e0b;
+        --effort:#ef4444;
       }
 
-      members = members
-        .filter(m => m && (m.name || m.이름))
-        .map((m, idx) => ({
-          id: m.id ?? (idx + 1),
-          name: m.name ?? m.이름,                       // A열
-          mbti: (m.mbti ?? m.MBTI ?? "").toUpperCase() // B열
-        }));
+      *{
+        box-sizing:border-box;
+        margin:0;padding:0;
+        -webkit-tap-highlight-color:transparent;
+      }
+      body{
+        font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+        background:var(--bg);
+        color:#0f172a;
+        min-height:100vh;
+        padding:8px;
+      }
 
-      state.members = members;
-      buildRelationsFromMbti(); // 🔥 MBTI로 관계 자동 계산
-      updateStats();
-      renderList();
-      setMode("graph");
+      .app{
+        max-width:480px;
+        margin:0 auto;
+        background:var(--panel);
+        border-radius:16px;
+        overflow:hidden;
+        display:flex;
+        flex-direction:column;
+        min-height:calc(100vh - 16px);
+        box-shadow:0 14px 40px rgba(0,0,0,.35);
+      }
 
-      alert("MBTI 데이터를 불러왔습니다. 상단에서 ‘리스트’를 눌러 이름·MBTI 기준 관계를 확인하세요.");
-    }catch(err){
-      console.error(err);
-      alert("데이터를 불러오는 중 오류가 발생했습니다.\n브라우저 개발자 도구(F12) → 콘솔에서 에러를 확인해 주세요.");
-    }
-  });
+      /* 🔥 돌아가기 아이콘 (Floating Button) */
+      .btn-floating-back{
+        position:fixed;
+        top:14px;
+        left:14px;
+        width:42px;
+        height:42px;
+        border-radius:50%;
+        background:rgba(15,23,42,0.85);
+        backdrop-filter:blur(4px);
+        color:#fff;
+        font-size:22px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        cursor:pointer;
+        z-index:9999;
+        border:1px solid rgba(255,255,255,.15);
+        box-shadow:0 5px 14px rgba(0,0,0,.35);
+      }
+      .btn-floating-back:active{
+        background:rgba(15,23,42,1);
+      }
 
-  elBtnReset.addEventListener("click", () => {
-    elQ.value = "";
-    elFilterMbti.value = "";
-    state.members = [];
-    state.relations = [];
-    elRelationList.innerHTML = '<div class="muted">데이터가 초기화되었습니다.</div>';
-    updateStats();
-    setMode("graph");
-  });
+      .top{
+        position:sticky;
+        top:0;
+        z-index:10;
+        background:linear-gradient(135deg,#1d4ed8,#38bdf8);
+        color:#fff;
+        padding:12px 10px 10px;
+      }
+      .top-title{
+        font-weight:800;
+        font-size:16px;
+        text-align:center;
+        margin-bottom:8px;
+      }
 
-  elQ.addEventListener("input", () => {
-    if(state.members.length === 0) return;
-    renderList();
-  });
-  elFilterMbti.addEventListener("change", () => {
-    if(state.members.length === 0) return;
-    renderList();
-  });
+      .top-row{
+        display:flex;
+        gap:6px;
+        margin-bottom:6px;
+      }
+      .top-row input,
+      .top-row select{
+        flex:1;
+        border-radius:10px;
+        border:0;
+        padding:8px 9px;
+        font-size:13px;
+      }
+      .top-row input::placeholder{
+        color:#9ca3af;
+      }
 
-  function updateStats(){
-    const total = state.members.length;
-    let ok = 0, warnOrBad = 0;
-    state.relations.forEach(r => {
-      if(r.level === "ok") ok++;
-      else warnOrBad++;
-    });
-    elStatTotal.textContent = total;
-    elStatOk.textContent = ok;
-    elStatWarn.textContent = warnOrBad;
-  }
+      .btn-main{
+        width:100%;
+        border:0;
+        border-radius:10px;
+        background:#f97316;
+        color:#fff;
+        font-weight:700;
+        padding:9px 0;
+        font-size:14px;
+        cursor:pointer;
+      }
+      .btn-main:active{
+        background:#ea580c;
+      }
 
-  function renderList(){
-    const q = elQ.value.trim().toLowerCase();
-    const mbtiFilter = elFilterMbti.value;
+      .top-target{
+        margin-top:6px;
+        font-size:12px;
+        text-align:center;
+        opacity:.9;
+      }
 
-    if(state.members.length === 0){
-      elRelationList.innerHTML = '<div class="muted">불러온 데이터가 없습니다.</div>';
-      return;
-    }
+      .content{
+        flex:1;
+        overflow:auto;
+        padding:10px;
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+      }
 
-    const filtered = state.members.filter(m => {
-      const nameText = (m.name || "").toLowerCase();
-      const mbtiText = (m.mbti || "").toLowerCase();
-      const matchText = !q || nameText.includes(q) || mbtiText.includes(q);
-      const matchMbti = mbtiFilter ? m.mbti === mbtiFilter : true;
-      return matchText && matchMbti;
-    });
+      .section{
+        border-radius:12px;
+        padding:8px 9px;
+      }
+      .sec-title{
+        font-weight:800;
+        margin-bottom:4px;
+        font-size:13px;
+      }
+      .sec-sub{
+        font-size:11px;
+        opacity:.7;
+        margin-bottom:6px;
+      }
 
-    if(filtered.length === 0){
-      elRelationList.innerHTML =
-        '<div class="muted">검색/필터에 해당하는 인원이 없습니다.</div>';
-      return;
-    }
+      .sec-good{background:#ecfdf3;border:1px solid #bbf7d0;}
+      .sec-normal{background:#fff7ed;border:1px solid #fed7aa;}
+      .sec-effort{background:#fef2f2;border:1px solid #fecaca;}
 
-    const items = filtered.map(m => {
-      const rels = state.relations.filter(
-        r => r.from === m.id || r.to === m.id
-      );
-      let ok = 0, warn = 0, bad = 0;
-      rels.forEach(r => {
-        if(r.level === "ok") ok++;
-        else if(r.level === "warn") warn++;
-        else if(r.level === "bad") bad++;
-      });
+      .mbti-row{
+        display:flex;
+        align-items:flex-start;
+        gap:6px;
+        margin-bottom:4px;
+        flex-wrap:wrap;
+      }
+      .mbti-label{
+        min-width:48px;
+        padding:6px 6px;
+        border-radius:999px;
+        background:#eff6ff;
+        text-align:center;
+        font-size:11px;
+        font-weight:800;
+        color:#1d4ed8;
+      }
+      .chip-wrap{
+        display:flex;
+        flex-wrap:wrap;
+        gap:4px;
+      }
+      .chip{
+        font-size:11px;
+        padding:5px 8px;
+        border-radius:999px;
+        border:1px solid var(--line);
+        background:#fff;
+        cursor:pointer;
+      }
+      .chip span.count{
+        font-size:10px;
+        opacity:.7;
+        margin-left:4px;
+      }
 
-      return `
-        <div class="rel-item">
-          <div class="rel-top">
-            <div class="rel-name">${m.name}</div>
-            <div class="rel-mbti">${m.mbti}</div>
-          </div>
-          <div class="rel-summary">
-            <span class="badge ok">👍 잘 맞는 관계 ${ok}명</span>
-            <span class="badge warn">⚠️ 주의 관계 ${warn}명</span>
-            <span class="badge bad">💥 충돌 관계 ${bad}명</span>
-          </div>
+      .empty{
+        font-size:12px;
+        text-align:center;
+        padding:12px 4px;
+        color:#9ca3af;
+      }
+
+      .bottom{
+        position:sticky;
+        bottom:0;
+        background:#0f172a;
+        color:#e5e7eb;
+        padding:8px 10px;
+        font-size:11px;
+      }
+      .bottom-title{
+        font-weight:700;
+        margin-bottom:4px;
+      }
+      .bottom-ul{
+        list-style:none;
+      }
+      .bottom-ul li{
+        margin-bottom:2px;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <!-- 🔥 돌아가기 버튼 (고정 아이콘) -->
+    <div id="btnBack" class="btn-floating-back">←</div>
+
+    <div class="app">
+      <!-- 상단 고정 -->
+      <header class="top">
+        <div class="top-title">우수사례 참가자 MBTI 관계도</div>
+
+        <div class="top-row">
+          <input id="nameInput" type="text" placeholder="이름 (예: 김현철)" />
+          <select id="mbtiInput">
+            <option value="">MBTI 선택</option>
+            <option>INTJ</option><option>INTP</option><option>ENTJ</option><option>ENTP</option>
+            <option>INFJ</option><option>INFP</option><option>ENFJ</option><option>ENFP</option>
+            <option>ISTJ</option><option>ISFJ</option><option>ESTJ</option><option>ESFJ</option>
+            <option>ISTP</option><option>ISFP</option><option>ESTP</option><option>ESFP</option>
+          </select>
         </div>
-      `;
-    }).join("");
 
-    elRelationList.innerHTML = items;
-  }
+        <button id="btnRun" class="btn-main">관계도 보기</button>
 
-  // 초기 상태
-  setMode("graph");
-  elStage.innerHTML = '<div class="muted" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;">관계도 영역 (그래프 렌더링 예정)</div>';
-</script>
+        <div id="targetInfo" class="top-target">
+          이름과 MBTI를 입력하고 관계도를 확인해 보세요.
+        </div>
+      </header>
+
+      <!-- 중간 스크롤 -->
+      <main class="content" id="content">
+        <div class="empty">
+          아직 데이터가 없습니다.<br />
+          상단에서 이름 / MBTI를 입력한 뒤 ‘관계도 보기’를 눌러 주세요.
+        </div>
+      </main>
+
+      <!-- 하단 고정 -->
+      <footer class="bottom">
+        <div class="bottom-title">관계도 정의</div>
+        <ul class="bottom-ul">
+          <li>• <span style="color:#4ade80;">좋음</span> : 협업 시 시너지 높음</li>
+          <li>• <span style="color:#fb923c;">보통</span> : 조율에 따라 협업 가능</li>
+          <li>• <span style="color:#fca5a5;">노력 필요</span> : 소통·배려 필요</li>
+        </ul>
+      </footer>
+    </div>
+
+    <script>
+      // 🔥 돌아가기 아이콘 → 링크 이동
+      document.getElementById("btnBack").addEventListener("click", () => {
+        window.location.href = "https://kim950106.github.io/travel-recommendation/";
+      });
+
+      const btnRun = document.getElementById('btnRun');
+      const nameInput = document.getElementById('nameInput');
+      const mbtiInput = document.getElementById('mbtiInput');
+      const targetInfo = document.getElementById('targetInfo');
+      const content = document.getElementById('content');
+
+      function renderRelations(data){
+        if (data.error){
+          targetInfo.textContent = data.error;
+          content.innerHTML = '<div class="empt
